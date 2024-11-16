@@ -1,0 +1,12 @@
+# Python virtual environment
+bitdata-venv/
+
+# Compiled files
+__pycache__/
+*.pyc
+
+# IDE settings (optional)
+.vscode/
+
+# Django secrets
+.env
