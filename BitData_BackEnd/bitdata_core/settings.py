@@ -45,8 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'auths.apps.AuthsConfig',
-    'dashboard.apps.DashboardConfig',
+    'auths.apps.AuthsConfig', # 로그인 관련
+    'dashboard.apps.DashboardConfig', # 대시보드 관련
+    'transaction.apps.TransactionConfig', # 거래내역 관련
+    'settings.apps.SettingsConfig', # 설정 관련
     'rest_framework', # rest_framework
     'corsheaders', # CORS
 ]

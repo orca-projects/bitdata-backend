@@ -1,5 +1,5 @@
 from django.urls import path
-from auths.views import GetKakaoLoginUrl, KakaoLoginCallback, ConsentView, SaveBinanceKeys
+from auths.views import GetKakaoLoginUrl, KakaoLoginCallback, ConsentView, SaveBinanceKeys, CollectDataFromBinance
 from . import views
 
 # from auths.views import 
@@ -10,4 +10,5 @@ urlpatterns = [
     path('login/kakao/consent/', ConsentView.as_view(), name='kakao-login-consent'),
     path('login/get/csrf/', views.get_csrf_token),
     path('onboarding/keys/save/', SaveBinanceKeys.as_view(), name='onboarding-binance-key-save'),
+    path('collect/', CollectDataFromBinance.as_view(), name='collect-data-from-binance')
 ]

@@ -219,25 +219,21 @@ class ConsentView(APIView):
 # 작성자: 윤택한
 # 수정자: 윤택한
 # 생성 일자: 24.12.15(일)
-# 수정 일자: 25.01.06(월)
+# 수정 일자: 25.01.13(월)
 class SaveBinanceKeys(APIView) :
     def post(self, request) :
-        # # 클라이언트로부터 세션 키 받기
-        # session_key = request.data.get('session_key')
-        # binance_api_key = request.data.get('apiKey')
-        # binance_secret_key = request.data.get('secretKey')
-        # 필수 필드 검증
+        # Step 1: 필수 필드 검증
         required_fields = {
             'session_key': request.data.get('session_key'),
             'apiKey': request.data.get('api_key'),
             'secretKey': request.data.get('secret_key')
         }
-        print(required_fields)
+
         missing_fields = [key for key, value in required_fields.items() if not value]
         
         if missing_fields:
             return JsonResponse(
-                {'error': f"Missing required fields: {', '.join(missing_fields)}"},
+                {'오류': f"필수 입력 항목이 누락되었습니다: {', '.join(missing_fields)}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -245,63 +241,110 @@ class SaveBinanceKeys(APIView) :
         binance_api_key = required_fields['apiKey']
         binance_secret_key = required_fields['secretKey']
 
-        print(session_key, binance_api_key, binance_secret_key)
-
         if not session_key:
-            return JsonResponse({'error': 'Session key is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'Session key가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
         if not binance_api_key:
-            return JsonResponse({'error': 'Binance Api key is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'Binance Api key가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
         if not binance_secret_key:
-            return JsonResponse({'error': 'Binance Seceret key is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return JsonResponse({'error': 'Binance Seceret key가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Step 2: 세션에서 사용자 정보 가져오기
         try:
-            # 세션 데이터베이스에서 세션 객체 가져오기
             session = Session.objects.get(session_key=session_key)
             session_data = session.get_decoded()
-
-            # 세션에서 사용자 정보 가져오기
             user_info = session_data.get('kakao_user_info')
-            print(user_info)
+
             if not user_info:
                 return JsonResponse(
-                    {'error': 'User info not found in session'},
+                    {'오류': '세션에서 사용자 정보를 찾을 수 없습니다.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
+        except Session.DoesNotExist:
+            return JsonResponse({'오류': '유효하지 않은 세션 키입니다.'}, status=status.HTTP_404_NOT_FOUND)
 
-            # KakaoId 가져오기기
+        # Step 3: Kakao ID 기반 사용자 확인
+        try:
             user_kakao = UserKakao.objects.get(kakaoId=user_info.get('kakaoId'))
+        except UserKakao.DoesNotExist:
+            return JsonResponse({'오류': '데이터베이스에서 해당 카카오 ID를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
-            # Binance UID 가져오기
-            binance_uid = self.get_binance_uid(binance_api_key, binance_secret_key)
-            if not binance_uid:
-                return JsonResponse(
-                    {'error': 'Failed to fetch Binance UID. Please check your API keys.'},
-                    status=500
-                )
-            
-            print(binance_uid)
+        # Step 4: Binance API Key와 Secret Key 저장
+        try:
+            user_key_info, created = UserKeyInfo.objects.update_or_create(
+                kakaoId=user_kakao,
+                defaults={
+                    'binanceApiKey': binance_api_key,
+                    'binanceSecretKey': binance_secret_key
+                }
+            )
+            user_key_info.save()
+        except Exception as e:
+            return JsonResponse({'오류': f'바이낸스 키 저장 중 오류가 발생했습니다: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            try:
-                user = UserKeyInfo.objects.create(
-                    kakaoId=user_kakao,
-                    binanceApiKey=binance_api_key,
-                    binanceSecretKey=binance_secret_key,
-                    binanceId=binance_uid
-                )
-                user.save()
-            except Exception as e:
-                return JsonResponse({'message': f'바이낸스 키 저장 실패: {str(e)}'}, status=500)
-            return JsonResponse({'message': '사용자 정보 조회 성공', 'user_info': user_info})
-        except ObjectDoesNotExist:
-            return JsonResponse({'error': 'Invalid session key'}, status=404)
+        # 성공 반환
+        return JsonResponse({'메시지': '바이낸스 키가 성공적으로 저장되었습니다.'}, status=status.HTTP_200_OK)
+
+# Class Name: CollectDataFromBinance
+# Class 설명: 바이낸스에서 데이터를 수집하는 클래스스
+# 작성자: 윤택한
+# 수정자: 윤택한
+# 생성 일자: 25.01.13(월)
+# 수정 일자: 25.01.13(월)
+class CollectDataFromBinance(APIView):
+    def post(self, request):
+        # Step 1: 세션 키 가져오기
+        session_key = request.data.get('session_key')
+        if not session_key:
+            return JsonResponse({'result': 'F', 'error': 'Session key 가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Step 2: 세션 객체 디코드
+        try:
+            session = Session.objects.get(session_key=session_key)
+            session_data = session.get_decoded()
+        except Session.DoesNotExist:
+            return JsonResponse({'result': 'F', 'error': 'session key가 일치하지 않습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Step 3: 사용자 정보 확인
+        user_info = session_data.get('kakao_user_info')
+        if not user_info:
+            return JsonResponse({'result': 'F', 'error': 'User info가 세션에 존재하지 않습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Step 4: Kakao ID 기반 데이터 가져오기
+        try:
+            user_kakao = UserKakao.objects.get(kakaoId=user_info.get('kakaoId'))
+            binance_api_key = UserKeyInfo.objects.get(kakaoId=user_kakao).binanceApiKey
+            binance_secret_key = UserKeyInfo.objects.get(kakaoId=user_kakao).binanceSecretKey
+        except UserKakao.DoesNotExist:
+            return JsonResponse({'result': 'F', 'error': 'User Kakao ID가 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+        except UserKeyInfo.DoesNotExist:
+            return JsonResponse({'result': 'F', 'error': 'Binance API keys가 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Step 5: Binance UID 가져오기
+        binance_uid = self.get_binance_uid(binance_api_key, binance_secret_key)
+        if not binance_uid:
+            return JsonResponse({'result': 'F', 'error': 'Binance UID를 가져오는데 실패하였습니다다. API Keys를 확인해주세요요.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Step 6: UID 저장
+        try:
+            user_key_info, created = UserKeyInfo.objects.update_or_create(
+                kakaoId=user_kakao,
+                defaults={'binanceId': binance_uid}
+            )
+            user_key_info.save()
+        except Exception as e:
+            return JsonResponse({'result': 'F', 'error': f'Binance UID를 저장하는데 실패했습니다다: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # 성공 반환
+        return JsonResponse({'result': 'T'}, status=status.HTTP_200_OK)
     # Function Name: get_binance_uid
     # Function 설명: 바이낸스에서 UID 가져오기기
     # 작성자: 윤택한
     # 수정자: 윤택한
-    # 생성 일자: 25.01.06(월)
-    # 수정 일자: 25.01.06(월)
+    # 생성 일자: 25.01.13(월)
+    # 수정 일자: 25.01.13(월)
     def get_binance_uid(self, api_key, secret_key):
-        client = Client(api_key, secret_key)
         try:
+            client = Client(api_key, secret_key)
             account_info = client.get_account()
             return account_info.get('uid')  # UID 반환
         except Exception as e:
