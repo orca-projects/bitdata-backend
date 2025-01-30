@@ -10,7 +10,7 @@ class BinanceUidRepository:
             client = Client(api_key, secret_key)
             account_info = client.get_account()
             uid = account_info.get("uid")
-            
+
             if uid is None:
                 raise NullException("uid")
 
