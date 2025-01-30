@@ -14,12 +14,10 @@ class Join(APIView):
 
             JoinServices.save_user_info(user_info)
         except ValueError as ve:
-            return ResponseHelper.error(request=request, message=str(ve))
+            print(ve)
+            return ResponseHelper.error(message="ValueError")
         except Exception as e:
-            return ResponseHelper.error(
-                request=request,
-                message="An error occurred",
-                error_details=str(e),
-            )
+            print(e)
+            return ResponseHelper.error()
 
-        return ResponseHelper.success(request=request)
+        return ResponseHelper.success(message="로그인 성공")

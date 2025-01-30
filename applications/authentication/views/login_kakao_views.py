@@ -19,7 +19,7 @@ class KakaoLogin(APIView):
 
         login_url = KakaoServices.get_login_url(state)
 
-        return ResponseHelper.success(request=request, data={"login_url": login_url})
+        return ResponseHelper.success(data={"login_url": login_url})
 
 
 class KakaoLoginCallback(APIView):
@@ -39,17 +39,14 @@ class KakaoLoginCallback(APIView):
 
             KakaoServices.save_session_user_info(request, user_info)
 
-            is_member = UserServices.is_member(user_info)
-            has_binance_key = UserServices.has_binance_key(user_info["kakao_id"])
+            kakao_id = user_info["kakao_id"]
+            is_member = UserServices.is_member(kakao_id)
+            has_binance_key = UserServices.has_binance_api_key(kakao_id)
         except Exception as e:
-            return ResponseHelper.error(
-                request=request,
-                message="An error occurred",
-                error_details=str(e),
-            )
+            print(e)
+            return ResponseHelper.error()
 
         return ResponseHelper.success(
-            request=request,
             data={
                 "is_member": is_member,
                 "has_binance_key": has_binance_key,

@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 
 
 # Create your models here.
@@ -57,8 +58,9 @@ class UserKeyInfo(models.Model):
     )
     binance_id = models.CharField(max_length=255, db_column="binanceId")  # varchar(255)
     created_at = models.DateTimeField(
-        auto_now_add=True, db_column="createdAt"
+        default=timezone.now, db_column="createdAt"
     )  # timestamp default now()
+    is_connected = models.BooleanField(db_column="isConnected", default=False)
     is_key_active = models.BooleanField(db_column="isKeyActive", default=True)
     binance_api_key = models.CharField(
         max_length=255, db_column="binanceApiKey"

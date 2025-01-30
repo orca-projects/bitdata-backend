@@ -15,10 +15,10 @@ class JoinServices:
     def save_user_info(user_info):
         try:
             UserKakao.objects.create(
-                kakaoId=user_info.get("kakao_id"),
+                kakao_id=user_info.get("kakao_id"),
                 name=user_info.get("name"),
-                phoneNumber=user_info.get("phone_number"),
-                accountEmail=user_info.get("email"),
+                phone_number=user_info.get("phone_number"),
+                account_email=user_info.get("email"),
             )
         except Exception as e:
             raise e

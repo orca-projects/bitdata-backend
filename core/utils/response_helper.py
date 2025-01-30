@@ -3,33 +3,35 @@ from django.http import JsonResponse
 
 class ResponseHelper:
     @staticmethod
-    def create(request=None, data=None, message="success", status=200, error=None):
-        response = {"message": message}
+    def create(state=None, message=None, data=None, status=200):
+        response = {}
+
+        if state:
+            response["state"] = state
+
+        if message:
+            response["message"] = message
 
         if data:
             response.update(data)
 
-        if request and hasattr(request, "session"):
-            request.session.save()
-            response["session_key"] = request.session.session_key
-
-        if error:
-            response["error"] = error
-
-        return JsonResponse(response, status=status)
-
-    @staticmethod
-    def success(request=None, data=None, message="success"):
-        return ResponseHelper.create(
-            request=request, data=data, message=message, status=200
+        return JsonResponse(
+            response,
+            status=status,
+            safe=False,
+            json_dumps_params={"ensure_ascii": False},
         )
 
     @staticmethod
-    def error(request=None, message="error", error_details=None, status=500):
+    def success(data=None, message=None):
         return ResponseHelper.create(
-            request=request,
-            data=None,
+            state="success", message=message, data=data, status=200
+        )
+
+    @staticmethod
+    def error(message="예상치 못한 오류"):
+        return ResponseHelper.create(
+            state="error",
             message=message,
-            status=status,
-            error=error_details,
+            status=500,
         )

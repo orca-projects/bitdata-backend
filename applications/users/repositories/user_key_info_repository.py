@@ -1,0 +1,58 @@
+import logging
+
+from applications.users.models import UserKakao, UserKeyInfo
+
+
+logger = logging.getLogger(__name__)
+
+
+class UserKeyInfoRepository:
+    @staticmethod
+    def find_by_id(id):
+        try:
+            user_key_info = UserKeyInfo.objects.get(id=id)
+            return user_key_info
+        except UserKeyInfo.DoesNotExist:
+            logger.warning(f"UserKeyInfo with id {id} not found.")
+            return None
+        except Exception as e:
+            logger.error(f"find_by_id error: {e}")
+            raise RuntimeError("데이터베이스 조회 중 오류 발생")
+
+    @staticmethod
+    def find_active_by_kakao_id(kakao_id):
+        user_key_info = UserKeyInfo.objects.filter(
+            kakao_id=kakao_id, is_key_active=True
+        ).first()
+        return user_key_info
+
+    @staticmethod
+    def create_user_key_info(kakao_id, binance_api_key):
+        try:
+            user_kakao = UserKakao.objects.filter(
+                kakao_id=kakao_id, deleted_at=None
+            ).first()
+
+            api_key = binance_api_key.get("api_key")
+            secret_key = binance_api_key.get("secret_key")
+
+            user_key_info = UserKeyInfo.objects.create(
+                kakao_id=user_kakao,
+                binance_api_key=api_key,
+                binance_secret_key=secret_key,
+            )
+            return user_key_info
+        except Exception as e:
+            logger.error(f"Binance API 키 생성 중 오류 발생: {e}")
+            raise RuntimeError("Binance API 키 생성 중 오류 발생")
+
+    @staticmethod
+    def update_user_key_info(user_key_info, **kwargs):
+        try:
+            for key, value in kwargs.items():
+                setattr(user_key_info, key, value)
+            user_key_info.save()
+            return user_key_info
+        except Exception as e:
+            logger.error(f"UserKeyInfo 업데이트 중 오류 발생: {e}")
+            raise RuntimeError("UserKeyInfo 업데이트 중 오류 발생")

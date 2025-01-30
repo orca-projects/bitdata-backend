@@ -1,21 +1,26 @@
 from binance.client import Client
 
-from core.exceptions import NullException
 
-
-class BinanceUidRepository:
+class BinanceApiRepository:
     @staticmethod
-    def get(api_key, secret_key):
+    def is_connected(api_key, secret_key):
+        try:
+            client = Client(api_key, secret_key)
+            client.get_account()
+
+            return True
+        except Exception as e:
+            print(f"Binance API 연결 실패: {e}")
+            return False
+
+    @staticmethod
+    def get_binance_uid(api_key, secret_key):
         try:
             client = Client(api_key, secret_key)
             account_info = client.get_account()
             uid = account_info.get("uid")
-            
-            if uid is None:
-                raise NullException("uid")
 
             return uid
-        except NullException as e:
-            raise e
         except Exception as e:
-            raise RuntimeError(f"Binance UID 조회 중 오류 발생: {e}")
+            print(f"Binance UID 조회 중 오류 발생: {e}")
+            return None
