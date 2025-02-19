@@ -32,7 +32,8 @@ INSTALLED_APPS = [
     "applications.users",
     "applications.authentication",
     "applications.authorization",
-    "applications.binance_api",
+    "applications.binance_api", 
+    "applications.transaction",
 ]
 
 MIDDLEWARE = [
@@ -129,7 +130,7 @@ CSRF_COOKIE_NAME = "csrftoken"
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_NAME = "bitdata_session_id"
 
-AUTH_USER_MODEL = "users.User"
+# AUTH_USER_MODEL = "users.User"
 
 KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")

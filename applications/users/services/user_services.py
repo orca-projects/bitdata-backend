@@ -1,10 +1,10 @@
-from applications.users.repositories import UserKakaoRepository, UserKeyInfoRepository
+from applications.users.repositories import UserRepository, UserKeyInfoRepository, OrdersRepository, TradesRepository, TransactionsRepository
 
 
 class UserServices:
     @staticmethod
     def is_member(kakao_id):
-        user_kakao = UserKakaoRepository.find_by_kakao_id(kakao_id)
+        user_kakao = UserRepository.find_by_kakao_id(kakao_id)
         return user_kakao is not None
 
     @staticmethod
@@ -49,11 +49,33 @@ class UserServices:
         UserKeyInfoRepository.update_user_key_info(
             active_user_key_info, binance_id=binance_id
         )
+    
+
+    # 25.02.16(일) 윤택한 생성성
+    #
+    @staticmethod
+    def save_all_order(binance_id, orders_data):
+        OrdersRepository.save_orders_data(
+            binance_id, orders_data=orders_data
+        )
+    
+    @staticmethod
+    def save_trades_data(binance_id, trades_data):
+        TradesRepository.save_trades_data(
+            binance_id, trades_data=trades_data
+        )
+    
+    @staticmethod
+    def save_transactions_data(binance_id, transactions_data):
+        TransactionsRepository.save_transactions_data(
+            binance_id, transactions_data=transactions_data
+        )
+
 
     @staticmethod
     def get_profile(kakao_id):
         try:
-            user_kakao = UserKakaoRepository.find_by_kakao_id(kakao_id)
+            user_kakao = UserRepository.find_by_kakao_id(kakao_id)
             username = user_kakao.name
 
             active_user_key_info = UserKeyInfoRepository.find_active_by_kakao_id(

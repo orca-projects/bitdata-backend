@@ -1,6 +1,6 @@
 import logging
 
-from applications.users.models import UserKakao, UserKeyInfo
+from applications.users.models import User, UserKeyInfo
 
 
 logger = logging.getLogger(__name__)
@@ -26,10 +26,11 @@ class UserKeyInfoRepository:
         ).first()
         return user_key_info
 
+
     @staticmethod
     def create_user_key_info(kakao_id, binance_api_key):
         try:
-            user_kakao = UserKakao.objects.filter(
+            user_kakao = User.objects.filter(
                 kakao_id=kakao_id, deleted_at=None
             ).first()
 

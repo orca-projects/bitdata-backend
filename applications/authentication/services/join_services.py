@@ -1,4 +1,4 @@
-from applications.users.models import UserKakao
+from applications.users.models import User
 
 
 class JoinServices:
@@ -14,7 +14,7 @@ class JoinServices:
     @staticmethod
     def save_user_info(user_info):
         try:
-            UserKakao.objects.create(
+            User.objects.create(
                 kakao_id=user_info.get("kakao_id"),
                 name=user_info.get("name"),
                 phone_number=user_info.get("phone_number"),

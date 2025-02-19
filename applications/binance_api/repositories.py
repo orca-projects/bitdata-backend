@@ -24,3 +24,49 @@ class BinanceApiRepository:
         except Exception as e:
             print(f"Binance UID 조회 중 오류 발생: {e}")
             return None
+        
+    # 25.02.13 윤택한 생성
+    # Binance All Orders API 호출
+    @staticmethod
+    def fetch_orders_data(api_key, secret_key):
+        try:
+            client = Client(api_key, secret_key)
+            # Binance 선물 API - Orders 조회
+            response = client.futures_get_all_orders()
+            # Orders Data 반환
+            return response
+
+        except Exception as e:
+            print(f"Binance All Orders 조회 중 오류 발생: {e}")
+            return None
+    # 25.02.13 윤택한 생성
+    # Binance Account Trade List API 호출
+    @staticmethod
+    def fetch_trades_data(api_key, secret_key):
+        try:
+            client = Client(api_key, secret_key)
+            # Binance 선물 API - Trades 조회
+            response = client.futures_account_trades()
+            # Trades Data 반환
+            return response
+
+        except Exception as e:
+            print(f"Binance Trade List 조회 중 오류 발생: {e}")
+            return None
+    # 25.02.12 윤택한 생성
+    # Binance Get Income History API 호출
+    @staticmethod
+    def fetch_income_history_data(api_key, secret_key):
+        try:
+            client = Client(api_key, secret_key)
+            # Binance 선물 API - Transactions 조회
+            response = client.futures_income_history()
+            # Transactions Data 반환
+            return response
+
+        except Exception as e:
+            print(f"Binance Transaction List 조회 중 오류 발생: {e}")
+            return None
+        
+
+    
