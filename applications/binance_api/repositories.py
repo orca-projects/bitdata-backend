@@ -1,5 +1,5 @@
 from binance.client import Client
-
+from datetime import datetime, timedelta, timezone
 
 class BinanceApiRepository:
     @staticmethod
@@ -24,6 +24,21 @@ class BinanceApiRepository:
         except Exception as e:
             print(f"Binance UID 조회 중 오류 발생: {e}")
             return None
+        
+    # 25.02.24 윤택한 생성
+    # Binance Position Information API 호출
+    @staticmethod
+    def fetch_position_info_data(api_key, secret_key):
+        try:
+            client = Client(api_key, secret_key)
+            # Binance 선물 API - Position Info 조회
+            response = client.futures_position_information()
+            # Position Info 반환
+            return response
+        except Exception as e:
+            print(f"Binanace Position Information 조회 중 오류 발생: {e}")
+            return None
+
         
     # 25.02.13 윤택한 생성
     # Binance All Orders API 호출

@@ -26,7 +26,24 @@ class UserKeyInfoRepository:
         ).first()
         return user_key_info
 
+    @staticmethod
+    def find_active_by_binance_id(binance_id):
+        user_key_info = UserKeyInfo.objects.filter(
+            binance_id=binance_id, is_key_active=True
+        ).first()
+        return user_key_info
+    
+    # 25.02.27(목) 윤택한
+    # Last Collected 값이 있으면 해당 값을 없으면 None을 반환
+    @staticmethod
+    def get_last_collected(binance_id):
+        last_collected = UserKeyInfo.objects.filter(
+            binance_id=binance_id
+        ).order_by('-last_collected').values_list('last_collected', flat=True).first()
+        
+        return last_collected if last_collected else None
 
+    
     @staticmethod
     def create_user_key_info(kakao_id, binance_api_key):
         try:

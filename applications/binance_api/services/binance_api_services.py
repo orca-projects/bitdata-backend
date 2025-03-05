@@ -24,6 +24,16 @@ class BinanceApiServices:
 
         return uid
     
+
+    @staticmethod
+    def get_position_info_data(binance_api_key):
+        api_key = binance_api_key["api_key"]
+        secret_key = binance_api_key["secret_key"]
+
+        position_information = BinanceApiRepository.fetch_position_info_data(api_key, secret_key)
+
+        return position_information
+    
     @staticmethod
     def get_orders_data(binance_api_key):
         api_key = binance_api_key["api_key"]
