@@ -242,7 +242,7 @@ class UserServices:
             position_groups[position.position_id].append(position)
 
         # 3. 각 포지션에 대해 유지 기간, 종료 시간, 포지션 방향 및 심볼 설정
-        position_durations = []
+        positions_data = []
         for position_id, pos_orders in position_groups.items():
             if not pos_orders:
                 continue
@@ -314,7 +314,7 @@ class UserServices:
                         total_buy_fee = sum(float(trade.commission) for trade in trades) if trades else 0.0
 
                         # 결과 저장
-                        position_durations.append({
+                        positions_data.append({
                             "position_id": position_id,
                             "position_duration": duration_str,
                             "position_closed": position_closed_str,
@@ -327,6 +327,6 @@ class UserServices:
                         })
 
         # 최종 데이터 저장
-        transactions_data["positions"] = position_durations
+        transactions_data["positions"] = positions_data
 
         return transactions_data
