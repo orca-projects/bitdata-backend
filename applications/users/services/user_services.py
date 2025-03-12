@@ -34,8 +34,11 @@ class UserServices:
 
     @staticmethod
     def deactivate_active_user_key_info(kakao_id):
-        # Repo 패턴에 따라 모든 활성 키 비활성화
-        UserKeyInfoRepository.deactivate_all_active_keys(kakao_id)
+        active_user_key_info = UserKeyInfoRepository.find_active_by_kakao_id(kakao_id)
+        if active_user_key_info:
+            UserKeyInfoRepository.update_user_key_info(
+                active_user_key_info, is_key_active=False
+            )
 
     @staticmethod
     def get_binance_api_key(kakao_id):
@@ -101,15 +104,17 @@ class UserServices:
     #
     @staticmethod
     def save_all_order(binance_id, orders_data):
-        OrdersRepository.upsert_orders_data(binance_id, orders_data)
+        OrdersRepository.save_orders_data(binance_id, orders_data=orders_data)
 
     @staticmethod
     def save_trades_data(binance_id, trades_data):
-        TradesRepository.upsert_trades_data(binance_id, trades_data)
+        TradesRepository.save_trades_data(binance_id, trades_data=trades_data)
 
     @staticmethod
     def save_transactions_data(binance_id, transactions_data):
-        TransactionsRepository.upsert_transactions_data(binance_id, transactions_data)
+        TransactionsRepository.save_transactions_data(
+            binance_id, transactions_data=transactions_data
+        )
 
     @staticmethod
     def save_positions_data(positions_data):

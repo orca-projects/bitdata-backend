@@ -16,7 +16,7 @@ class UserKeyInfoRepository:
             logger.warning(f"UserKeyInfo with id {id} not found.")
             return None
         except Exception as e:
-            logger.error(f"find_by_id error: {e}")
+            logger.error(f"find_by_id error: {e}", exc_info=True)
             raise RuntimeError("데이터베이스 조회 중 오류 발생")
 
     @staticmethod
@@ -32,24 +32,24 @@ class UserKeyInfoRepository:
             binance_id=binance_id, is_key_active=True
         ).first()
         return user_key_info
-    
+
     # 25.02.27(목) 윤택한
     # Last Collected 값이 있으면 해당 값을 없으면 None을 반환
     @staticmethod
     def get_last_collected(binance_id):
-        last_collected = UserKeyInfo.objects.filter(
-            binance_id=binance_id
-        ).order_by('-last_collected').values_list('last_collected', flat=True).first()
-        
+        last_collected = (
+            UserKeyInfo.objects.filter(binance_id=binance_id)
+            .order_by("-last_collected")
+            .values_list("last_collected", flat=True)
+            .first()
+        )
+
         return last_collected if last_collected else None
 
-    
     @staticmethod
     def create_user_key_info(kakao_id, binance_api_key):
         try:
-            user_kakao = User.objects.filter(
-                kakao_id=kakao_id, deleted_at=None
-            ).first()
+            user_kakao = User.objects.filter(kakao_id=kakao_id, deleted_at=None).first()
 
             api_key = binance_api_key.get("api_key")
             secret_key = binance_api_key.get("secret_key")
@@ -62,7 +62,7 @@ class UserKeyInfoRepository:
             )
             return user_key_info
         except Exception as e:
-            logger.error(f"Binance API 키 생성 중 오류 발생: {e}")
+            logger.error(f"Binance API 키 생성 중 오류 발생: {e}", exc_info=True)
             raise RuntimeError("Binance API 키 생성 중 오류 발생")
 
     @staticmethod
@@ -73,7 +73,7 @@ class UserKeyInfoRepository:
             user_key_info.save()
             return user_key_info
         except Exception as e:
-            logger.error(f"UserKeyInfo 업데이트 중 오류 발생: {e}")
+            logger.error(f"UserKeyInfo 업데이트 중 오류 발생: {e}", exc_info=True)
             raise RuntimeError("UserKeyInfo 업데이트 중 오류 발생")
         
     @staticmethod

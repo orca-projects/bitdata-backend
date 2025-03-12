@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     "applications.users",
     "applications.authentication",
     "applications.authorization",
-    "applications.binance_api", 
+    "applications.binance_api",
     "applications.transaction",
 ]
 
@@ -139,3 +139,62 @@ if ENVIRONMENT == "development":
 elif ENVIRONMENT == "production":
     KAKAO_REDIRECT_URL = "https://bitdata.kr/callback"
 KAKAO_REPONSE_TYPE = os.getenv("KAKAO_REPONSE_TYPE")
+
+LOG_DIR = BASE_DIR / "logs"
+LOG_DIR.mkdir(exist_ok=True)  # logs 디렉토리가 없으면 생성
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{levelname}] {asctime} {module} | {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "[{levelname}] {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+        "file_error": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": LOG_DIR / "django_error.log",
+            "formatter": "verbose",
+        },
+        "file_debug": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": LOG_DIR / "django_debug.log",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file_error", "file_debug"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": True,
+        },
+        "django.request": {
+            "handlers": ["console", "file_error"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.db.backends": {
+            "handlers": ["console", "file_debug"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "django.utils.autoreload": {
+            "handlers": [],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}
