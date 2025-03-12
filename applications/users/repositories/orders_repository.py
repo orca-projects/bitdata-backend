@@ -1,4 +1,6 @@
 import logging
+import traceback
+
 from django.db.models import Max
 from applications.users.models import Orders, Trades, Transactions, PositionOrders
 from datetime import datetime
@@ -7,6 +9,8 @@ from django.db import transaction
 
 
 logger = logging.getLogger(__name__)
+
+
 # 25.02.26 윤택한
 # Position 테이블 관리 Repository
 class PositionOrdersRepository:
@@ -15,18 +19,22 @@ class PositionOrdersRepository:
     @staticmethod
     def get_max_position_id(binance_id):
         try:
-            max_position = PositionOrders.objects.filter(binance_id=binance_id).aggregate(Max('position_id'))
-            max_position_id = max_position.get('position_id__max')
+            max_position = PositionOrders.objects.filter(
+                binance_id=binance_id
+            ).aggregate(Max("position_id"))
+            max_position_id = max_position.get("position_id__max")
 
             if max_position_id is None:
                 logger.info(f"No positions found for binance_id: {binance_id}")
                 return 0  # 기본값 0 반환
-            
+
             return max_position_id  # int 값 반환
 
         except Exception as e:
-            logger.error(f"Position ID 조회 중 오류 발생: {e}")
+            error_trace = traceback.format_exc()
+            logger.error(f"Position ID 조회 중 오류 발생: {e}\n{error_trace}")
             return 0  # 오류 발생 시 기본값 반환
+
     # 25.02.27(목) 윤택한
     # positions_data 저장
     @staticmethod
@@ -40,8 +48,9 @@ class PositionOrdersRepository:
                 PositionOrders(
                     binance_id=data["binanceId"],
                     order_id=data["orderId"],
-                    position_id=data["positionId"]
-                ) for data in positions_data
+                    position_id=data["positionId"],
+                )
+                for data in positions_data
             ]
 
             with transaction.atomic():  # 트랜잭션 처리 (데이터 일관성 유지)
@@ -51,9 +60,10 @@ class PositionOrdersRepository:
             return True
 
         except Exception as e:
-            logger.error(f"Position 데이터 저장 중 오류 발생: {e}")
+            error_trace = traceback.format_exc()
+            logger.error(f"Position 데이터 저장 중 오류 발생: {e}\n{error_trace}")
             return None
-    
+
     # 25.02.28(금) 윤택한
     # positions_datas 가져오기
     @staticmethod
@@ -76,7 +86,7 @@ class OrdersRepository:
             if not orders_data:
                 logger.warning("주문 데이터 없음")
                 return None
-            
+
             orders_objects = [
                 Orders(
                     binance_id_id=binance_id,
@@ -112,10 +122,10 @@ class OrdersRepository:
             logger.info(f"{len(orders_objects)}개의 Orders 데이터를 저장했습니다.")
 
         except Exception as e:
-            logger.error(f"Orders 데이터 저장 중 오류 발생: {e}")
+            error_trace = traceback.format_exc()
+            logger.error(f"Orders 데이터 저장 중 오류 발생: {e}\n{error_trace}")            
             raise RuntimeError("Orders 데이터 저장 중 오류 발생")
-    
-        
+
     # 25.02.28(금) 윤택한
     # orders_datas 가져오기
     @staticmethod
@@ -123,12 +133,14 @@ class OrdersRepository:
         try:
             return Orders.objects.get(order_id=order_id)
         except Orders.DoesNotExist:
-            logger.error(f"Order ID {order_id}에 대한 Orders 데이터가 존재하지 않습니다.")
+            error_trace = traceback.format_exc()
+            logger.error(f"Order ID {order_id}에 대한 Orders 데이터가 존재하지 않습니다.\n{error_trace}")        
             return None
         except Exception as e:
-            logger.error(f"Orders 데이터 조회 중 오류 발생: {e}")
+            error_trace = traceback.format_exc()
+            logger.error(f"Orders 데이터 조회 중 오류 발생: {e}\n{error_trace}")        
             return None
-    
+
     @staticmethod
     def get_orders_by_order_ids(order_ids):
         try:
@@ -136,6 +148,8 @@ class OrdersRepository:
         except Exception as e:
             logger.error(f"Orders 데이터 조회 중 오류 발생: {e}")
             return None
+
+
 # 25.02.18 윤택한
 # Trades 테이블 관리 Repository
 class TradesRepository:
@@ -175,7 +189,6 @@ class TradesRepository:
         except Exception as e:
             logger.error(f"Trades 데이터 저장 중 오류 발생: {e}")
             raise RuntimeError("Trades 데이터 저장 중 오류 발생")
-        
 
     # 25.02.28(금) 윤택한
     # trades_datas 가져오기
@@ -186,7 +199,7 @@ class TradesRepository:
         except Exception as e:
             logger.error(f"Trades 데이터 조회 중 오류 발생: {e}")
             return None
-        
+
     @staticmethod
     def get_trades_by_binance_id_and_order_ids(binance_id, order_ids):
         try:
@@ -194,6 +207,8 @@ class TradesRepository:
         except Exception as e:
             logger.error(f"Trades 데이터 조회 중 오류 발생: {e}")
             return None
+
+
 # 25.02.18 윤택한
 # Transactions 테이블 관리 Repository
 class TransactionsRepository:
@@ -209,25 +224,30 @@ class TransactionsRepository:
             transactions_objects = [
                 Transactions(
                     binance_id_id=binance_id,
-                    symbol=txn["symbol"] if txn["symbol"] else None,  # 빈 문자열이면 None 처리
+                    symbol=(
+                        txn["symbol"] if txn["symbol"] else None
+                    ),  # 빈 문자열이면 None 처리
                     income_type=txn["incomeType"],
                     income=txn["income"],
                     asset=txn["asset"],
                     info=txn["info"],
                     time=txn["time"],
                     tran_id=txn["tranId"],
-                    trade_id=txn["tradeId"] if txn["tradeId"] else None,  # 빈 문자열이면 None 처리
+                    trade_id=(
+                        txn["tradeId"] if txn["tradeId"] else None
+                    ),  # 빈 문자열이면 None 처리
                 )
                 for txn in transactions_data
             ]
 
             Transactions.objects.bulk_create(transactions_objects)
-            logger.info(f"{len(transactions_objects)}개의 Transactions 데이터를 저장했습니다.")
+            logger.info(
+                f"{len(transactions_objects)}개의 Transactions 데이터를 저장했습니다."
+            )
 
         except Exception as e:
             logger.error(f"Transactions 데이터 저장 중 오류 발생: {e}")
             raise RuntimeError("Transactions 데이터 저장 중 오류 발생")
-
 
     # 25.02.28(금) 윤택한
     # transactoin_datas 가져오기

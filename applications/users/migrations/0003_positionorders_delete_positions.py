@@ -6,25 +6,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0002_orders_positions_trades_transactions'),
+        ("users", "0002_orders_positions_trades_transactions"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PositionOrders',
+            name="PositionOrders",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('binance_id', models.CharField(db_column='binanceId', max_length=50)),
-                ('order_id', models.CharField(db_column='orderId', max_length=50)),
-                ('position_id', models.BigIntegerField(db_column='positionId', unique=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_column='createdAt')),
+                ("id", models.AutoField(primary_key=True, serialize=False)),
+                ("binance_id", models.CharField(db_column="binanceId", max_length=50)),
+                ("order_id", models.CharField(db_column="orderId", max_length=50)),
+                (
+                    "position_id",
+                    models.BigIntegerField(db_column="positionId", unique=True),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, db_column="createdAt"),
+                ),
             ],
             options={
-                'db_table': 'PositionOrders',
-                'managed': False,
+                "db_table": "PositionOrders",
+                "managed": False,
             },
         ),
         migrations.DeleteModel(
-            name='Positions',
+            name="Positions",
         ),
     ]

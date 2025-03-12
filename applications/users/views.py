@@ -34,35 +34,45 @@ class Collect(APIView):
         self.is_connected = True
         self.binance_id = None
         self.last_position_id = None
-        self.all_orders_data = None 
-        self.trades_data = None 
-        self.transactions_data = None 
-        self.profile = None 
+        self.all_orders_data = None
+        self.trades_data = None
+        self.transactions_data = None
+        self.profile = None
 
     def get(self, request) -> JsonResponse:
         try:
-            kakao_id, binance_api_key = self.fetch_user_data(request) # 사용자 정보 가져오기
+            kakao_id, binance_api_key = self.fetch_user_data(
+                request
+            )  # 사용자 정보 가져오기
 
-            self.binance_id = BinanceApiServices.get_binance_id(binance_api_key) # 바이낸스ID 가져오기
+            self.binance_id = BinanceApiServices.get_binance_id(
+                binance_api_key
+            )  # 바이낸스ID 가져오기
 
-            last_collected = self.get_last_collected(self.binance_id) # 추후에 이 값을 통해서 BinanceId 조회해야 함
+            last_collected = self.get_last_collected(
+                self.binance_id
+            )  # 추후에 이 값을 통해서 BinanceId 조회해야 함
 
-            self.collect(binance_api_key) # 바이낸스 데이터 가져오기
+            self.collect(binance_api_key)  # 바이낸스 데이터 가져오기
 
             self.save(kakao_id)  # 상태 저장
 
-            self.last_position_id = self.get_next_position_id(self.binance_id) # 마지막 포지션 ID 조회
+            self.last_position_id = self.get_next_position_id(
+                self.binance_id
+            )  # 마지막 포지션 ID 조회
 
-            if self.all_orders_data: # 주문 데이터가 있을 경우 포지션 처리
-                positions_data = self.process_positions(self.binance_id, self.last_position_id)
-                
+            if self.all_orders_data:  # 주문 데이터가 있을 경우 포지션 처리
+                positions_data = self.process_positions(
+                    self.binance_id, self.last_position_id
+                )
+
                 if positions_data:  # 데이터가 존재할 때만 저장
                     self.save_positions_data(positions_data)
-            
+
             transactions = self.process_transactions(self.binance_id)
             print("Transactions 데이터", transactions)
 
-            self.profile = UserServices.get_profile(kakao_id) # 프로필 데이터 조회
+            self.profile = UserServices.get_profile(kakao_id)  # 프로필 데이터 조회
         except Exception as e:
             print(f"Error in Collect.get(): {e}")
             return ResponseHelper.error()
@@ -70,16 +80,16 @@ class Collect(APIView):
         return ResponseHelper.success(
             data={
                 "profile": self.profile,
-                #transactions 여기에다가 넣어주기기
+                # transactions 여기에다가 넣어주기기
             },
         )
-    
+
     def fetch_user_data(self, request):
         user_info = request.session.get("user_info", {})
         kakao_id = user_info.get("kakao_id")
         binance_api_key = UserServices.get_binance_api_key(kakao_id)
         return kakao_id, binance_api_key
-    
+
     @staticmethod
     def get_last_collected(binance_id):
         if not binance_id:
@@ -92,13 +102,15 @@ class Collect(APIView):
             return  # 연결되지 않으면 종료
 
         # 데이터 수집과 동시에 lastCollected 업데이트
-        last_collected_time = now() 
+        last_collected_time = now()
         UserServices.save_last_collected(self.binance_id, last_collected_time)
 
         self.position_info = BinanceApiServices.get_position_info_data(binance_api_key)
         self.all_orders_data = BinanceApiServices.get_orders_data(binance_api_key)
         self.trades_data = BinanceApiServices.get_trades_data(binance_api_key)
-        self.transactions_data = BinanceApiServices.get_transactions_data(binance_api_key)
+        self.transactions_data = BinanceApiServices.get_transactions_data(
+            binance_api_key
+        )
 
     def get_next_position_id(self, binance_id):
         if not binance_id:
@@ -118,9 +130,11 @@ class Collect(APIView):
     def process_positions(self, binance_id, start_position_id):
         if not self.all_orders_data:
             return []
-        
-        return UserServices.process_positions(binance_id, start_position_id, self.all_orders_data)
-    
+
+        return UserServices.process_positions(
+            binance_id, start_position_id, self.all_orders_data
+        )
+
     # 25.02.27(목) 윤택한
     # position_data 저장
     @staticmethod
@@ -132,6 +146,7 @@ class Collect(APIView):
     @staticmethod
     def process_transactions(binance_id):
         return UserServices.process_transactions(binance_id)
+
 
 class Profile(APIView):
     def get(self, request) -> JsonResponse:

@@ -68,7 +68,9 @@ class UserKeyInfo(models.Model):
     binance_secret_key = models.CharField(
         max_length=255, db_column="binanceSecretKey"
     )  # varchar(255)
-    last_collected = models.DateTimeField(null=True, blank=True, db_column="lastCollected")  # 추가된 컬럼
+    last_collected = models.DateTimeField(
+        null=True, blank=True, db_column="lastCollected"
+    )  # 추가된 컬럼
 
     class Meta:
         db_table = "UserKeyInfo"  # 기존 테이블 이름 매핑
@@ -108,7 +110,9 @@ class Orders(models.Model):
     side = models.CharField(max_length=255, db_column="side")
     position_side = models.CharField(max_length=255, db_column="positionSide")
     status = models.CharField(max_length=255, db_column="status")
-    stop_price = models.CharField(max_length=255, null=True, blank=True, db_column="stopPrice")
+    stop_price = models.CharField(
+        max_length=255, null=True, blank=True, db_column="stopPrice"
+    )
     close_position = models.BooleanField(default=False, db_column="closePosition")
     symbol = models.CharField(max_length=255, db_column="symbol")
     time = models.BigIntegerField(db_column="time")
@@ -117,10 +121,15 @@ class Orders(models.Model):
     update_time = models.BigIntegerField(db_column="updateTime")
     working_type = models.CharField(max_length=255, db_column="workingType")
     price_protect = models.BooleanField(default=False, db_column="priceProtect")
-    price_match = models.CharField(max_length=255, default="NONE", db_column="priceMatch")
-    self_trade_prevention_mode = models.CharField(max_length=255, default="NONE", db_column="selfTradePreventionMode")
+    price_match = models.CharField(
+        max_length=255, default="NONE", db_column="priceMatch"
+    )
+    self_trade_prevention_mode = models.CharField(
+        max_length=255, default="NONE", db_column="selfTradePreventionMode"
+    )
     good_till_date = models.BigIntegerField(default=0, db_column="goodTillDate")
     created_at = models.DateTimeField(default=timezone.now, db_column="createdAt")
+
     class Meta:
         db_table = "Orders"
         managed = False
@@ -154,7 +163,7 @@ class Trades(models.Model):
 
     def __str__(self):
         return f"Trade ID: {self.trade_id}, Symbol: {self.symbol}"
-    
+
 
 class Transactions(models.Model):
     id = models.AutoField(primary_key=True)
