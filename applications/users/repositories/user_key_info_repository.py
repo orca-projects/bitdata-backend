@@ -43,7 +43,6 @@ class UserKeyInfoRepository:
             .values_list("last_collected", flat=True)
             .first()
         )
-
         return last_collected if last_collected else None
 
     @staticmethod
