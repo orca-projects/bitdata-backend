@@ -78,8 +78,6 @@ class BinanceApiRepository:
             # Binance 선물 API - Transactions 조회
             response = client.futures_income_history(startTime=start_time, limit=1000)
             # Transactions Data 반환
-
-            print(response)
             return response
 
         except Exception as e:
