@@ -1,5 +1,4 @@
 from binance.client import Client
-from datetime import datetime, timedelta, timezone
 
 
 class BinanceApiRepository:
@@ -43,11 +42,11 @@ class BinanceApiRepository:
     # 25.02.13 윤택한 생성
     # Binance All Orders API 호출
     @staticmethod
-    def fetch_orders_data(api_key, secret_key):
+    def fetch_orders_data(api_key, secret_key, order_id):
         try:
             client = Client(api_key, secret_key)
             # Binance 선물 API - Orders 조회
-            response = client.futures_get_all_orders()
+            response = client.futures_get_all_orders(orderId=order_id, limit=1000)
             # Orders Data 반환
             return response
 
@@ -58,11 +57,11 @@ class BinanceApiRepository:
     # 25.02.13 윤택한 생성
     # Binance Account Trade List API 호출
     @staticmethod
-    def fetch_trades_data(api_key, secret_key):
+    def fetch_trades_data(api_key, secret_key, trade_id):
         try:
             client = Client(api_key, secret_key)
             # Binance 선물 API - Trades 조회
-            response = client.futures_account_trades()
+            response = client.futures_account_trades(fromId=trade_id, limit=1000)
             # Trades Data 반환
             return response
 
@@ -73,12 +72,14 @@ class BinanceApiRepository:
     # 25.02.12 윤택한 생성
     # Binance Get Income History API 호출
     @staticmethod
-    def fetch_income_history_data(api_key, secret_key):
+    def fetch_income_history_data(api_key, secret_key, start_time):
         try:
             client = Client(api_key, secret_key)
             # Binance 선물 API - Transactions 조회
-            response = client.futures_income_history()
+            response = client.futures_income_history(startTime=start_time, limit=1000)
             # Transactions Data 반환
+
+            print(response)
             return response
 
         except Exception as e:
