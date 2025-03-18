@@ -142,12 +142,14 @@ class BinanceApiServices:
         return trades_data
 
     @staticmethod
-    def get_transactions_data(binance_api_key, start_time):
+    def get_transactions_data(binance_api_key):
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
 
+        last_income_time = TransactionsRepository.get_last_income_time()
+
         raw_ransactions_data = BinanceApiRepository.fetch_income_history_data(
-            api_key, secret_key, start_time
+            api_key, secret_key, last_income_time
         )
 
         transactions_data = BinanceApiServices.process_transactions_data(raw_ransactions_data)
