@@ -1,7 +1,7 @@
 import logging
 import traceback
 
-from applications.users.models import Trades
+from applications.transaction.models import Trades
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class TradesRepository:
     # 25.02.18 윤택한
     # Trades Data 저장
     @staticmethod
-    def save_trades_data(binance_id, trades_data):
+    def create(binance_id, trades_data):
         try:
             if not trades_data:
                 logger.warning("Trades 데이터 없음")
@@ -39,21 +39,3 @@ class TradesRepository:
         except Exception as e:
             logger.error(f"Trades 데이터 저장 중 오류 발생: {e}")
             raise RuntimeError("Trades 데이터 저장 중 오류 발생")
-
-    # 25.02.28(금) 윤택한
-    # trades_datas 가져오기
-    @staticmethod
-    def get_trades_by_binance_id(binance_id):
-        try:
-            return Trades.objects.filter(binance_id=binance_id).all()
-        except Exception as e:
-            logger.error(f"Trades 데이터 조회 중 오류 발생: {e}")
-            return None
-
-    @staticmethod
-    def get_trades_by_binance_id_and_order_ids(binance_id, order_ids):
-        try:
-            return Trades.objects.filter(binance_id=binance_id, order_id__in=order_ids)
-        except Exception as e:
-            logger.error(f"Trades 데이터 조회 중 오류 발생: {e}")
-            return None

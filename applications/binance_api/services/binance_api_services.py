@@ -1,182 +1,186 @@
 import logging
-
-from applications.transaction.repositories import OrdersRepository
-from applications.transaction.repositories import TradesRepository
-from applications.transaction.repositories import TransactionsRepository
+from decimal import Decimal
+from applications.transaction.repositories import (
+    OrdersRepository,
+    TradesRepository,
+    TransactionsRepository,
+)
 from applications.binance_api.repositories import BinanceApiRepository
-
 
 logger = logging.getLogger(__name__)
 
 
 class BinanceApiServices:
     @staticmethod
-    def is_connected(binance_api_key):
+    def is_connected(binance_api_key: dict) -> bool:
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
-
-        is_connected = BinanceApiRepository.is_connected(api_key, secret_key)
-
-        return is_connected
+        return BinanceApiRepository.is_connected(api_key, secret_key)
 
     @staticmethod
-    def get_binance_id(binance_api_key):
+    def get_binance_id(binance_api_key: dict) -> str:
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
-
-        uid = BinanceApiRepository.get_binance_uid(api_key, secret_key)
-
-        return uid
+        return BinanceApiRepository.get_binance_uid(api_key, secret_key)
 
     @staticmethod
-    def get_position_info_data(binance_api_key):
-        api_key = binance_api_key["api_key"]
-        secret_key = binance_api_key["secret_key"]
-
-        position_information = BinanceApiRepository.fetch_position_info_data(
-            api_key, secret_key
-        )
-
-        return position_information
-
-    @staticmethod
-    def get_orders_data(binance_api_key):
+    def get_orders_data(binance_api_key: dict) -> list[dict]:
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
 
         last_order_id = OrdersRepository.get_last_order_id()
-
-        raw_orders_data = BinanceApiRepository.fetch_orders_data(
+        raw_data = BinanceApiRepository.fetch_orders_data(
             api_key, secret_key, int(last_order_id) + 1
         )
-
-        orders_data = BinanceApiServices.process_orders_data(raw_orders_data)
-
-        return orders_data
+        return BinanceApiServices.process_orders_data(raw_data)
 
     @staticmethod
-    def process_orders_data(raw_orders_data):
-        orders_data = []
+    def process_orders_data(raw_orders_data: list) -> list[dict]:
+        orders = []
 
-        for raw_order in raw_orders_data:
+        for item in raw_orders_data:
             try:
                 order = {
-                    "order_id": raw_order["orderId"],
-                    "client_order_id": raw_order["clientOrderId"],
-                    "avg_price": float(raw_order["avgPrice"]),
-                    "executed_qty": float(raw_order["executedQty"]),
-                    "orig_qty": float(raw_order["origQty"]),
-                    "orig_type": raw_order["origType"],
-                    "price": float(raw_order["price"]),
-                    "reduce_only": raw_order["reduceOnly"],
-                    "close_position": raw_order["closePosition"],
-                    "side": raw_order["side"],
-                    "position_side": raw_order["positionSide"],
-                    "status": raw_order["status"],
-                    "stop_price": float(raw_order.get("stopPrice", 0)),  # NULL 허용
-                    "time": int(raw_order["time"]),
-                    "time_in_force": raw_order["timeInForce"],
-                    "type": raw_order["type"],
-                    "update_time": int(raw_order["updateTime"]),
-                    "working_type": raw_order["workingType"],
-                    "price_protect": raw_order["priceProtect"],
-                    "price_match": raw_order["priceMatch"],
-                    "self_trade_prevention_mode": raw_order["selfTradePreventionMode"],
-                    "good_till_date": int(raw_order.get("goodTillDate", 0)),  # 기본값 0
-                    "cum_quote": float(raw_order.get("cumQuote", "0")),  # 기본값 '0'
-                    "symbol": raw_order["symbol"],
+                    "order_id": item["orderId"],
+                    "client_order_id": item["clientOrderId"],
+                    "avg_price": Decimal(item["avgPrice"]),
+                    "executed_qty": Decimal(item["executedQty"]),
+                    "orig_qty": Decimal(item["origQty"]),
+                    "orig_type": item["origType"],
+                    "price": Decimal(item["price"]),
+                    "reduce_only": item["reduceOnly"],
+                    "close_position": item["closePosition"],
+                    "side": item["side"],
+                    "position_side": item["positionSide"],
+                    "status": item["status"],
+                    "stop_price": Decimal(item.get("stopPrice") or "0"),
+                    "time": int(item["time"]),
+                    "time_in_force": item["timeInForce"],
+                    "type": item["type"],
+                    "update_time": int(item["updateTime"]),
+                    "working_type": item["workingType"],
+                    "price_protect": item["priceProtect"],
+                    "price_match": item["priceMatch"],
+                    "self_trade_prevention_mode": item["selfTradePreventionMode"],
+                    "good_till_date": int(item.get("goodTillDate") or 0),
+                    "cum_quote": Decimal(item.get("cumQuote") or "0"),
+                    "symbol": item["symbol"],
                 }
-                orders_data.append(order)
-            except KeyError as e:
+                orders.append(order)
+            except (KeyError, ValueError) as e:
                 logger.warning(
-                    f"주문 데이터 가공 중 키 에러 발생: {e} - 데이터: {order}"
+                    f"[Orders] 데이터 가공 중 오류 발생: {e} - 데이터: {item}"
                 )
-            except ValueError as e:
-                logger.warning(f"주문 데이터 변환 중 오류 발생: {e} - 데이터: {order}")
 
-        return orders_data
+        return orders
 
     @staticmethod
-    def get_trades_data(binance_api_key):
+    def get_trades_data(binance_api_key: dict) -> list[dict]:
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
 
         last_trade_id = TradesRepository.get_last_trades_id()
+        raw_data = BinanceApiRepository.fetch_trades_data(
+            api_key, secret_key, int(last_trade_id) + 1
+        )
+        return BinanceApiServices.process_trades_data(raw_data)
 
-        raw_trades_data = BinanceApiRepository.fetch_trades_data(api_key, secret_key, int(last_trade_id) + 1)
-
-        trades_data = BinanceApiServices.process_trades_data(raw_trades_data)
-
-        return trades_data
-    
     @staticmethod
-    def process_trades_data(raw_trades_data):
-        trades_data = []
+    def process_trades_data(raw_trades_data: list) -> list[dict]:
+        trades = []
 
-        for raw_trade in raw_trades_data:
+        for item in raw_trades_data:
             try:
                 trade = {
-                    "trade_id": raw_trade["id"],
-                    "order_id": raw_trade["orderId"],
-                    "symbol": raw_trade["symbol"],
-                    "side": raw_trade["side"],
-                    "price": float(raw_trade["price"]),
-                    "qty": float(raw_trade["qty"]),
-                    "realized_pnl": float(raw_trade["realizedPnl"]),
-                    "quote_qty": float(raw_trade["quoteQty"]),
-                    "commission": float(raw_trade["commission"]),
-                    "commission_asset": raw_trade["commissionAsset"],
-                    "time": int(raw_trade["time"]),
-                    "position_side": raw_trade["positionSide"],
-                    "buyer": raw_trade["buyer"],
-                    "maker": raw_trade["maker"],
+                    "trade_id": item["id"],
+                    "order_id": item["orderId"],
+                    "symbol": item["symbol"],
+                    "side": item["side"],
+                    "price": Decimal(item["price"]),
+                    "qty": Decimal(item["qty"]),
+                    "realized_pnl": Decimal(item["realizedPnl"]),
+                    "quote_qty": Decimal(item["quoteQty"]),
+                    "commission": Decimal(item["commission"]),
+                    "commission_asset": item["commissionAsset"],
+                    "time": int(item["time"]),
+                    "position_side": item["positionSide"],
+                    "buyer": item["buyer"],
+                    "maker": item["maker"],
                 }
-                trades_data.append(trade)
-            except KeyError as e:
+                trades.append(trade)
+            except (KeyError, ValueError) as e:
                 logger.warning(
-                    f"trade 데이터 가공 중 키 에러 발생: {e} - 데이터: {trade}"
+                    f"[Trades] 데이터 가공 중 오류 발생: {e} - 데이터: {item}"
                 )
-            except ValueError as e:
-                logger.warning(f"trade 데이터 변환 중 오류 발생: {e} - 데이터: {trade}")
 
-        return trades_data
+        return trades
 
     @staticmethod
-    def get_transactions_data(binance_api_key):
+    def get_transactions_data(binance_api_key: dict) -> list[dict]:
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
 
         last_income_time = TransactionsRepository.get_last_income_time()
-
-        raw_ransactions_data = BinanceApiRepository.fetch_income_history_data(
+        raw_data = BinanceApiRepository.fetch_income_history_data(
             api_key, secret_key, last_income_time
         )
-
-        transactions_data = BinanceApiServices.process_transactions_data(raw_ransactions_data)
-
-        return transactions_data
+        return BinanceApiServices.process_transactions_data(raw_data)
 
     @staticmethod
-    def process_transactions_data(raw_ransactions_data):
-        transactions_data = []
+    def process_transactions_data(raw_transactions_data: list) -> list[dict]:
+        transactions = []
 
-        for raw_transaction in raw_ransactions_data:
+        for item in raw_transactions_data:
             try:
                 transaction = {
-                    "symbol": raw_transaction["symbol"] if raw_transaction["symbol"] else None,  # 빈 문자열 처리
-                    "income_type": raw_transaction["incomeType"],
-                    "income": float(raw_transaction["income"]),
-                    "asset": raw_transaction["asset"],
-                    "info": raw_transaction["info"],
-                    "time": int(raw_transaction["time"]),  # timestamp로 변환
-                    "tran_id": int(raw_transaction["tranId"]),
-                    "trade_id": int(raw_transaction["tradeId"]) if raw_transaction["tradeId"] else None,  # 빈 문자열 처리
+                    "symbol": item["symbol"] or None,
+                    "income_type": item["incomeType"],
+                    "income": Decimal(item["income"]),
+                    "asset": item["asset"],
+                    "info": item["info"],
+                    "time": int(item["time"]),
+                    "tran_id": int(item["tranId"]),
+                    "trade_id": int(item["tradeId"]) if item["tradeId"] else None,
                 }
-                transactions_data.append(transaction)
+                transactions.append(transaction)
+            except (KeyError, ValueError) as e:
+                logger.warning(
+                    f"[Transactions] 데이터 가공 중 오류 발생: {e} - 데이터: {item}"
+                )
 
-            except KeyError as e:
-                logger.warning(f"수익 데이터 가공 중 키 에러 발생: {e} - 데이터: {raw_transaction}")
-            except ValueError as e:
-                logger.warning(f"수익 데이터 변환 중 오류 발생: {e} - 데이터: {raw_transaction}")
+        return transactions
 
-        return transactions_data
+    @staticmethod
+    def get_position_info_data(binance_api_key: dict) -> list[dict]:
+        api_key = binance_api_key["api_key"]
+        secret_key = binance_api_key["secret_key"]
+
+        raw_data = BinanceApiRepository.fetch_position_info_data(api_key, secret_key)
+        return BinanceApiServices.process_position_info_data(raw_data)
+
+    @staticmethod
+    def process_position_info_data(raw_position_data: list) -> list[dict]:
+        positions = []
+
+        for item in raw_position_data:
+            try:
+                position = {
+                    "symbol": item["symbol"],
+                    "position_side": item["positionSide"],
+                    "position_amt": Decimal(item["positionAmt"]),
+                    "entry_price": Decimal(item["entryPrice"]),
+                    "break_even_price": Decimal(item.get("breakEvenPrice") or "0"),
+                    "mark_price": Decimal(item["markPrice"]),
+                    "unrealized_profit": Decimal(item["unRealizedProfit"]),
+                    "initial_margin": Decimal(item["initialMargin"]),
+                    "maint_margin": Decimal(item["maintMargin"]),
+                    "position_initial_margin": Decimal(item["positionInitialMargin"]),
+                    "update_time": int(item["updateTime"]),
+                }
+                positions.append(position)
+            except (KeyError, ValueError) as e:
+                logger.warning(
+                    f"[Positions] 데이터 가공 중 오류 발생: {e} - 데이터: {item}"
+                )
+
+        return positions

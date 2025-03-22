@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from core.utils.response_helper import ResponseHelper
 
 from applications.authentication.services import JoinServices
+from applications.users.repositories import UserRepository
 
 
 class Join(APIView):
@@ -12,7 +13,7 @@ class Join(APIView):
         try:
             user_info = JoinServices.get_user_info(request)
 
-            JoinServices.save_user_info(user_info)
+            UserRepository.create(user_info)
         except ValueError as ve:
             print(ve)
             return ResponseHelper.error(message="ValueError")

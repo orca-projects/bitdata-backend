@@ -6,9 +6,15 @@ from django.utils.timezone import now
 
 from core.utils import ResponseHelper
 
-from applications.users.services import UserServices
-from applications.users.services import CollectServices
-from applications.transaction.services import TransactionServices
+from applications.users.services import (
+    UserKeyInfoServices,
+    ProfileServices,
+)
+from applications.transaction.services import (
+    CollectServices,
+    PositionCalculator,
+    TransactionServices,
+)
 
 
 class BinanceKey(APIView):
@@ -21,7 +27,7 @@ class BinanceKey(APIView):
                 "secret_key": request.data.get("secret_key"),
             }
 
-            UserServices.save_binance_api_key(kakao_id, binance_api_key)
+            UserKeyInfoServices.save_binance_api_key(kakao_id, binance_api_key)
         except Exception as e:
             print(e)
             return ResponseHelper.error()
@@ -45,13 +51,17 @@ class Collect(APIView):
             user_info = request.session.get("user_info", {})
             kakao_id = user_info.get("kakao_id")
 
-            binance_api_key = UserServices.get_binance_api_key(kakao_id)
+            binance_api_key = UserKeyInfoServices.get_binance_api_key(kakao_id)
 
             CollectServices.collect(kakao_id, binance_api_key)
 
-            TransactionServices.calc_transaction()
+            position_dto_lsit = PositionCalculator.calculate_position(
+                kakao_id, binance_api_key
+            )
 
-            profile = UserServices.get_profile(kakao_id)  # 프로필 데이터 조회
+            TransactionServices.save_position(position_dto_lsit)
+
+            profile = ProfileServices.get_profile(kakao_id)
         except Exception as e:
             print(f"Error in Collect.get(): {e}")
             return ResponseHelper.error()
@@ -68,7 +78,7 @@ class Profile(APIView):
         try:
             user_info = request.session.get("user_info")
             kakao_id = user_info["kakao_id"]
-            profile = UserServices.get_profile(kakao_id)
+            profile = ProfileServices.get_profile(kakao_id)
         except Exception as e:
             print(e)
             return ResponseHelper.error()

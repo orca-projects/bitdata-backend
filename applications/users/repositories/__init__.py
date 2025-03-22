@@ -1,2 +1,2 @@
-from .user_kakao_repository import UserRepository
+from .user_repository import UserRepository
 from .user_key_info_repository import UserKeyInfoRepository

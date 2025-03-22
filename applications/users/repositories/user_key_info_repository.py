@@ -1,6 +1,9 @@
 import logging
 
-from applications.users.models import User, UserKeyInfo
+from applications.users.models import (
+    User,
+    UserKeyInfo,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -26,13 +29,6 @@ class UserKeyInfoRepository:
         ).first()
         return user_key_info
 
-    @staticmethod
-    def find_active_by_binance_id(binance_id):
-        user_key_info = UserKeyInfo.objects.filter(
-            binance_id=binance_id, is_key_active=True
-        ).first()
-        return user_key_info
-
     # 25.02.27(목) 윤택한
     # Last Collected 값이 있으면 해당 값을 없으면 None을 반환
     @staticmethod
@@ -46,7 +42,7 @@ class UserKeyInfoRepository:
         return last_collected if last_collected else None
 
     @staticmethod
-    def create_user_key_info(kakao_id, binance_api_key):
+    def create(kakao_id, binance_api_key):
         try:
             user_kakao = User.objects.filter(kakao_id=kakao_id, deleted_at=None).first()
 
@@ -65,7 +61,7 @@ class UserKeyInfoRepository:
             raise RuntimeError("Binance API 키 생성 중 오류 발생")
 
     @staticmethod
-    def update_user_key_info(user_key_info, **kwargs):
+    def update(user_key_info, **kwargs):
         try:
             for key, value in kwargs.items():
                 setattr(user_key_info, key, value)

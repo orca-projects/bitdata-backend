@@ -1,3 +1,5 @@
 from .orders_repository import OrdersRepository
 from .trades_repository import TradesRepository
 from .transaction_repository import TransactionsRepository
+from .position_history_repository import PositionHistoryRepository
+from .position_orders_repository import PositionOrdersRepository

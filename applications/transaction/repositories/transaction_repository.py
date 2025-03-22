@@ -1,8 +1,9 @@
 import logging
 import traceback
+from decimal import Decimal
+from django.db import connection
 
-
-from applications.users.models import Transactions
+from applications.transaction.models import Transactions
 
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,9 @@ class TransactionsRepository:
     def get_last_income_time():
         try:
             last_income = Transactions.objects.order_by("-time").first()
-            return last_income.time if last_income else 1564588800001  # 데이터 없으면 기본값 1564588800001 반환
+            return (
+                last_income.time if last_income else 1564588800001
+            )  # 데이터 없으면 기본값 1564588800001 반환
         except Exception as e:
             error_trace = traceback.format_exc()
             logger.error(f"마지막 거래 시간 조회 중 오류 발생: {e}\n{error_trace}")
@@ -24,17 +27,20 @@ class TransactionsRepository:
     # 25.02.18 윤택한
     # Transactions Data 저장
     @staticmethod
-    def save_transactions_data(binance_id, transactions_data):
+    def create(binance_id, transactions_data):
         try:
             if not transactions_data:
                 logger.warning("거래 내역 데이터 없음")
                 return None
 
             transactions_objects = [
-                Transactions(binance_id=binance_id, **transaction) for transaction in transactions_data
+                Transactions(binance_id=binance_id, **transaction)
+                for transaction in transactions_data
             ]
 
-            Transactions.objects.bulk_create(transactions_objects)
+            Transactions.objects.bulk_create(
+                transactions_objects, ignore_conflicts=True
+            )
             logger.info(
                 f"{len(transactions_objects)}개의 Transactions 데이터를 저장했습니다."
             )
@@ -43,12 +49,23 @@ class TransactionsRepository:
             logger.error(f"Transactions 데이터 저장 중 오류 발생: {e}")
             raise RuntimeError("Transactions 데이터 저장 중 오류 발생")
 
-    # 25.02.28(금) 윤택한
-    # transactoin_datas 가져오기
     @staticmethod
-    def get_transactions_by_binance_id(binance_id):
+    def get_total_funding_fee(symbol, start_time, end_time) -> Decimal:
         try:
-            return Transactions.objects.filter(binance_id=binance_id).all()
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT SUM(ts."income"::NUMERIC)
+                    FROM "Transactions" AS ts
+                    WHERE ts."symbol" = %s
+                    AND ts."time" BETWEEN %s AND %s
+                    AND ts."incomeType" = 'FUNDING_FEE'
+                    """,
+                    [symbol, start_time, end_time],
+                )
+                row = cursor.fetchone()
+                return row[0] if row[0] is not None else Decimal("0")
+
         except Exception as e:
-            logger.error(f"Transactions 데이터 조회 중 오류 발생: {e}")
-            return None
+            logger.error("Funding Fee 총합 계산 중 오류 발생", exc_info=True)
+            return Decimal("0")
