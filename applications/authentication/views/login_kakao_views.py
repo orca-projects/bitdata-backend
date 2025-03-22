@@ -8,7 +8,7 @@ from core.utils.response_helper import ResponseHelper
 
 from applications.authentication.services import KakaoServices
 from applications.authentication.utils import StateHelper
-from applications.users.services import UserServices
+from applications.users.services import UserServices, UserKeyInfoServices
 
 
 class KakaoLogin(APIView):
@@ -41,7 +41,7 @@ class KakaoLoginCallback(APIView):
 
             kakao_id = user_info["kakao_id"]
             is_member = UserServices.is_member(kakao_id)
-            has_binance_key = UserServices.has_binance_api_key(kakao_id)
+            has_binance_key = UserKeyInfoServices.has_binance_api_key(kakao_id)
         except Exception as e:
             print(e)
             return ResponseHelper.error()

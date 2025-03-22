@@ -30,34 +30,28 @@ class CollectServices:
     @staticmethod
     def save_is_connected(kakao_id, is_connected):
         active_user_key_info = UserKeyInfoRepository.find_active_by_kakao_id(kakao_id)
-        UserKeyInfoRepository.update_user_key_info(
-            active_user_key_info, is_connected=is_connected
-        )
+        UserKeyInfoRepository.update(active_user_key_info, is_connected=is_connected)
 
     @staticmethod
     def save_binance_id(kakao_id, binance_id):
         active_user_key_info = UserKeyInfoRepository.find_active_by_kakao_id(kakao_id)
-        UserKeyInfoRepository.update_user_key_info(
-            active_user_key_info, binance_id=binance_id
-        )
+        UserKeyInfoRepository.update(active_user_key_info, binance_id=binance_id)
 
     @staticmethod
     def save_orders_data(binance_id, orders_data):
-        OrdersRepository.save_orders_data(binance_id, orders_data=orders_data)
+        OrdersRepository.create(binance_id, orders_data=orders_data)
 
     @staticmethod
     def save_trades_data(binance_id, trades_data):
-        TradesRepository.save_trades_data(binance_id, trades_data=trades_data)
+        TradesRepository.create(binance_id, trades_data=trades_data)
 
     @staticmethod
     def save_transactions_data(binance_id, transactions_data):
-        TransactionsRepository.save_transactions_data(
-            binance_id, transactions_data=transactions_data
-        )
+        TransactionsRepository.create(binance_id, transactions_data=transactions_data)
 
     @staticmethod
     def save_last_collected(kakao_id):
         active_user_key_info = UserKeyInfoRepository.find_active_by_kakao_id(kakao_id)
-        UserKeyInfoRepository.update_user_key_info(
+        UserKeyInfoRepository.update(
             active_user_key_info, last_collected=datetime.now(timezone.utc)
         )

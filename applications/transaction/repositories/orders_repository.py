@@ -1,7 +1,9 @@
 import logging
 import traceback
 
-from applications.users.models import Orders
+from django.db import connection
+
+from applications.transaction.models import Orders
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +25,7 @@ class OrdersRepository:
     # 25.02.18 윤택한
     # orders data 저장
     @staticmethod
-    def save_orders_data(binance_id, orders_data):
+    def create(binance_id, orders_data):
         try:
             if not orders_data:
                 logger.warning("주문 데이터 없음")
@@ -41,27 +43,40 @@ class OrdersRepository:
             logger.error(f"Orders 데이터 저장 중 오류 발생: {e}\n{error_trace}")
             raise RuntimeError("Orders 데이터 저장 중 오류 발생")
 
-    # 25.02.28(금) 윤택한
-    # orders_datas 가져오기
     @staticmethod
-    def get_order_by_order_id(order_id):
+    def get_order_summary(binance_id, after_order_id):
         try:
-            return Orders.objects.get(order_id=order_id)
-        except Orders.DoesNotExist:
-            error_trace = traceback.format_exc()
-            logger.error(
-                f"Order ID {order_id}에 대한 Orders 데이터가 존재하지 않습니다.\n{error_trace}"
-            )
-            return None
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                        WITH order_summary AS (
+                            SELECT 
+                                o."orderId" AS order_id,
+                                o."symbol",
+                                o."side",
+                                o."executedQty"::NUMERIC * (CASE WHEN o."side" = 'BUY' THEN 1 ELSE -1 END) AS executed_quantity,
+                                o."executedQty"::NUMERIC * o."avgPrice"::NUMERIC AS size,
+                                o."avgPrice"::NUMERIC AS avg_price,
+                                COALESCE(SUM(CASE WHEN ts."incomeType" = 'COMMISSION' THEN CAST(ts."income" AS NUMERIC) ELSE 0 END), 0) AS commission,
+                                COALESCE(SUM(CASE WHEN ts."incomeType" = 'REALIZED_PNL' THEN CAST(ts."income" AS NUMERIC) ELSE 0 END), 0) AS realized_pnl,
+                                o."time"
+                            FROM "Orders" o
+                            LEFT JOIN "Trades" tr ON tr."orderId" = o."orderId"
+                            LEFT JOIN "Transactions" ts ON ts."tradeId" = tr."tradeId"
+                            WHERE o."binanceId" = %s
+                            AND o."time" >= %s
+                            GROUP BY o."orderId", o."symbol", o."executedQty", o."avgPrice", o."side", o."time"
+                        )
+                        SELECT *
+                        FROM order_summary
+                        WHERE commission != 0
+                        ORDER BY "time" DESC
+                    """,
+                    [binance_id, after_order_id],
+                )
+                columns = [col[0] for col in cursor.description]
+                return [dict(zip(columns, row)) for row in cursor.fetchall()]
         except Exception as e:
             error_trace = traceback.format_exc()
-            logger.error(f"Orders 데이터 조회 중 오류 발생: {e}\n{error_trace}")
-            return None
-
-    @staticmethod
-    def get_orders_by_order_ids(order_ids):
-        try:
-            return Orders.objects.filter(order_id__in=order_ids).order_by("time")
-        except Exception as e:
-            logger.error(f"Orders 데이터 조회 중 오류 발생: {e}")
-            return None
+            logger.error(f"포지션 데이터 조회 중 오류 발생: {e}\n{error_trace}")
+            return []
