@@ -12,16 +12,6 @@ logger = logging.getLogger(__name__)
 # 25.02.18 윤택한
 # Orders 테이블 관리 Repository
 class OrdersRepository:
-    @staticmethod
-    def get_last_order_id():
-        try:
-            last_order = Orders.objects.order_by("-order_id").first()
-            return last_order.order_id if last_order else 0  # 데이터가 없으면 0 반환
-        except Exception as e:
-            error_trace = traceback.format_exc()
-            logger.error(f"마지막 Orders ID 조회 중 오류 발생: {e}\n{error_trace}")
-            return 0  # 오류 발생 시 기본값 0 반환
-
     # 25.02.18 윤택한
     # orders data 저장
     @staticmethod

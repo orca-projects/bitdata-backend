@@ -28,11 +28,11 @@ class BinanceApiRepository:
     # 25.02.13 윤택한 생성
     # Binance All Orders API 호출
     @staticmethod
-    def fetch_orders_data(api_key, secret_key, order_id):
+    def fetch_orders_data(api_key, secret_key):
         try:
             client = Client(api_key, secret_key)
             # Binance 선물 API - Orders 조회
-            response = client.futures_get_all_orders(orderId=order_id, limit=1000)
+            response = client.futures_get_all_orders(orderId=0, limit=1000)
             # Orders Data 반환
             return response
 
@@ -43,11 +43,11 @@ class BinanceApiRepository:
     # 25.02.13 윤택한 생성
     # Binance Account Trade List API 호출
     @staticmethod
-    def fetch_trades_data(api_key, secret_key, trade_id):
+    def fetch_trades_data(api_key, secret_key):
         try:
             client = Client(api_key, secret_key)
             # Binance 선물 API - Trades 조회
-            response = client.futures_account_trades(fromId=trade_id, limit=1000)
+            response = client.futures_account_trades(fromId=0, limit=1000)
             # Trades Data 반환
             return response
 

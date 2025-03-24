@@ -10,16 +10,6 @@ logger = logging.getLogger(__name__)
 # 25.02.18 윤택한
 # Trades 테이블 관리 Repository
 class TradesRepository:
-    @staticmethod
-    def get_last_trades_id():
-        try:
-            last_trade = Trades.objects.order_by("-trade_id").first()
-            return last_trade.trade_id if last_trade else 0  # 데이터가 없으면 0 반환
-        except Exception as e:
-            error_trace = traceback.format_exc()
-            logger.error(f"마지막 Trades ID 조회 중 오류 발생: {e}\n{error_trace}")
-            return 0  # 오류 발생 시 기본값 0 반환
-
     # 25.02.18 윤택한
     # Trades Data 저장
     @staticmethod
