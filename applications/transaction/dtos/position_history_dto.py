@@ -9,9 +9,9 @@ from applications.transaction.repositories import TransactionsRepository
 @dataclass
 class PositionDto:
     binance_id: str
-    position_closed_at: int
-    position: str
     symbol: str
+    position: str
+    position_closed_at: int
 
     position_duration: int = field(default=0)
     opening_size: Decimal = Decimal("0")
@@ -32,7 +32,7 @@ class PositionDto:
     _close_quantity: int = field(default=0)
 
     def insert_order(self, order: dict):
-        self._order_ids.append(order["order_id"])
+        self._order_ids.append(order["id"])
 
         side = order["side"]
         executed_quantity = order["executed_quantity"]
@@ -51,7 +51,6 @@ class PositionDto:
                 self.closing_size += size
                 self.closing_avg_price += size
                 self.closing_commission += commission
-
         else:
             if side == "SELL":
                 self._open_quantity += executed_quantity
