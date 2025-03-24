@@ -1,8 +1,6 @@
 import logging
 from decimal import Decimal
 from applications.transaction.repositories import (
-    OrdersRepository,
-    TradesRepository,
     TransactionsRepository,
 )
 from applications.binance_api.repositories import BinanceApiRepository
@@ -28,10 +26,7 @@ class BinanceApiServices:
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
 
-        last_order_id = OrdersRepository.get_last_order_id()
-        raw_data = BinanceApiRepository.fetch_orders_data(
-            api_key, secret_key, int(last_order_id) + 1
-        )
+        raw_data = BinanceApiRepository.fetch_orders_data(api_key, secret_key)
         return BinanceApiServices.process_orders_data(raw_data)
 
     @staticmethod
@@ -79,10 +74,7 @@ class BinanceApiServices:
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
 
-        last_trade_id = TradesRepository.get_last_trades_id()
-        raw_data = BinanceApiRepository.fetch_trades_data(
-            api_key, secret_key, int(last_trade_id) + 1
-        )
+        raw_data = BinanceApiRepository.fetch_trades_data(api_key, secret_key)
         return BinanceApiServices.process_trades_data(raw_data)
 
     @staticmethod
