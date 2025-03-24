@@ -41,6 +41,7 @@ class OrdersRepository:
                     """
                         WITH order_summary AS (
                             SELECT 
+                                o."id",
                                 o."orderId" AS order_id,
                                 o."symbol",
                                 o."side",
@@ -49,12 +50,12 @@ class OrdersRepository:
                                 COALESCE(SUM(CASE WHEN ts."incomeType" = 'COMMISSION' THEN CAST(ts."income" AS NUMERIC) ELSE 0 END), 0) AS commission,
                                 COALESCE(SUM(CASE WHEN ts."incomeType" = 'REALIZED_PNL' THEN CAST(ts."income" AS NUMERIC) ELSE 0 END), 0) AS realized_pnl,
                                 o."time"
-                            FROM "Orders" o
-                            LEFT JOIN "Trades" tr ON tr."binanceId" = o."binanceId" AND tr."orderId" = o."orderId" 
-                            LEFT JOIN "Transactions" ts ON ts."binanceId" = o."binanceId" AND ts."tradeId" = tr."tradeId"
+                            FROM "Orders" AS o
+                            LEFT JOIN "Trades" AS tr ON tr."binanceId" = o."binanceId" AND tr."symbol" = o."symbol" AND tr."orderId" = o."orderId" 
+                            LEFT JOIN "Transactions" AS ts ON ts."binanceId" = o."binanceId"  AND ts."symbol" = o."symbol" AND ts."tradeId" = tr."tradeId"
                             WHERE o."binanceId" = %s
                             AND o."time" >= %s
-                            GROUP BY o."orderId", o."symbol", o."executedQty", o."avgPrice", o."side", o."time"
+                            GROUP BY o."id", o."binanceId", o."symbol", o."orderId", o."side", o."executedQty", o."avgPrice", o."time"
                         )
                         SELECT *
                         FROM order_summary

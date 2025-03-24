@@ -12,7 +12,7 @@ from applications.users.services import (
 )
 from applications.transaction.services import (
     CollectServices,
-    PositionCalculator,
+    PositionCalculatorService,
     TransactionServices,
 )
 
@@ -55,7 +55,7 @@ class Collect(APIView):
 
             CollectServices.collect(kakao_id, binance_api_key)
 
-            position_dto_lsit = PositionCalculator.calculate_position(
+            position_dto_lsit = PositionCalculatorService.calculate_position(
                 kakao_id, binance_api_key
             )
 
