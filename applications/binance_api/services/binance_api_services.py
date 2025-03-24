@@ -120,9 +120,9 @@ class BinanceApiServices:
         api_key = binance_api_key["api_key"]
         secret_key = binance_api_key["secret_key"]
 
-        last_income_time = TransactionsRepository.get_last_income_time()
+        last_time = TransactionsRepository.get_last_time()
         raw_data = BinanceApiRepository.fetch_income_history_data(
-            api_key, secret_key, last_income_time
+            api_key, secret_key, last_time
         )
         return BinanceApiServices.process_transactions_data(raw_data)
 
