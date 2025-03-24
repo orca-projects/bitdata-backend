@@ -56,13 +56,12 @@ class OrdersRepository:
                                 o."side",
                                 o."executedQty"::NUMERIC * (CASE WHEN o."side" = 'BUY' THEN 1 ELSE -1 END) AS executed_quantity,
                                 o."executedQty"::NUMERIC * o."avgPrice"::NUMERIC AS size,
-                                o."avgPrice"::NUMERIC AS avg_price,
                                 COALESCE(SUM(CASE WHEN ts."incomeType" = 'COMMISSION' THEN CAST(ts."income" AS NUMERIC) ELSE 0 END), 0) AS commission,
                                 COALESCE(SUM(CASE WHEN ts."incomeType" = 'REALIZED_PNL' THEN CAST(ts."income" AS NUMERIC) ELSE 0 END), 0) AS realized_pnl,
                                 o."time"
                             FROM "Orders" o
-                            LEFT JOIN "Trades" tr ON tr."orderId" = o."orderId"
-                            LEFT JOIN "Transactions" ts ON ts."tradeId" = tr."tradeId"
+                            LEFT JOIN "Trades" tr ON tr."binanceId" = o."binanceId" AND tr."orderId" = o."orderId" 
+                            LEFT JOIN "Transactions" ts ON ts."binanceId" = o."binanceId" AND ts."tradeId" = tr."tradeId"
                             WHERE o."binanceId" = %s
                             AND o."time" >= %s
                             GROUP BY o."orderId", o."symbol", o."executedQty", o."avgPrice", o."side", o."time"

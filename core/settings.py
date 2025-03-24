@@ -198,3 +198,5 @@ LOGGING = {
         },
     },
 }
+
+BINANCE_DEFAULT_TIME=1564588800001

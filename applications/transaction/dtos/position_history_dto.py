@@ -28,41 +28,41 @@ class PositionDto:
 
     _order_ids: list[str] = field(default_factory=list)
     _position_opened_at: datetime = field(default_factory=timezone.now)
-    _open_count: int = field(default=0)
-    _close_count: int = field(default=0)
+    _open_quantity: int = field(default=0)
+    _close_quantity: int = field(default=0)
 
     def insert_order(self, order: dict):
         self._order_ids.append(order["order_id"])
 
         side = order["side"]
+        executed_quantity = order["executed_quantity"]
         size = order["size"]
-        avg_price = order["avg_price"]
         commission = order["commission"]
 
         if self.position == "LONG":
             if side == "BUY":
-                self._open_count += 1
+                self._open_quantity += executed_quantity
                 self.opening_size += size
-                self.opening_avg_price += avg_price
+                self.opening_avg_price += size
                 self.opening_commission += commission
 
             if side == "SELL":
-                self._close_count += 1
+                self._close_quantity += executed_quantity
                 self.closing_size += size
-                self.closing_avg_price += avg_price
+                self.closing_avg_price += size
                 self.closing_commission += commission
 
         else:
             if side == "SELL":
-                self._open_count += 1
+                self._open_quantity += executed_quantity
                 self.opening_size += size
-                self.opening_avg_price += avg_price
+                self.opening_avg_price += size
                 self.opening_commission += commission
 
             if side == "BUY":
-                self._close_count += 1
+                self._close_quantity += executed_quantity
                 self.closing_size += size
-                self.closing_avg_price += avg_price
+                self.closing_avg_price += size
                 self.closing_commission += commission
 
         realized_pnl = order["realized_pnl"]
@@ -94,8 +94,8 @@ class PositionDto:
             self.realized_roi = Decimal("0.00")
 
     def calculate_avg_price(self):
-        self.opening_avg_price = self.opening_avg_price / self._open_count
-        self.closing_avg_price = self.closing_avg_price / self._close_count
+        self.opening_avg_price = abs(self.opening_avg_price / self._open_quantity)
+        self.closing_avg_price = abs(self.closing_avg_price / self._close_quantity)
 
     def calculate_total_funding_fee(self):
         self.total_funding_fee = TransactionsRepository.get_total_funding_fee(
