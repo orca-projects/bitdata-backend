@@ -1,9 +1,5 @@
 from django.http import JsonResponse
-
 from rest_framework.views import APIView
-
-from django.utils.timezone import now
-
 from core.utils import ResponseHelper
 
 from applications.users.services import (
@@ -12,7 +8,7 @@ from applications.users.services import (
 )
 from applications.transaction.services import (
     CollectServices,
-    PositionCalculatorService,
+    PositionCalculatorServices,
     TransactionServices,
 )
 
@@ -55,7 +51,7 @@ class Collect(APIView):
 
             CollectServices.collect(kakao_id, binance_api_key)
 
-            position_dto_lsit = PositionCalculatorService.calculate_position(
+            position_dto_lsit = PositionCalculatorServices.calculate_position(
                 kakao_id, binance_api_key
             )
 

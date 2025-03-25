@@ -11,11 +11,11 @@ from applications.transaction.repositories import (
 from applications.transaction.dtos import PositionDto
 
 
-class PositionCalculatorService:
+class PositionCalculatorServices:
     @staticmethod
     def calculate_position(kakao_id, binance_api_key):
         binance_id = UserKeyInfoServices.get_binance_id(kakao_id)
-        quantity_dict = PositionCalculatorService.get_quantity_dict(binance_api_key)
+        quantity_dict = PositionCalculatorServices.get_quantity_dict(binance_api_key)
         last_closed_at = PositionHistoryRepository.get_last_closed_at(binance_id)
         orders = OrdersRepository.get_order_summary(binance_id, last_closed_at)
 
