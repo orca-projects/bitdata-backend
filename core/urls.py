@@ -26,6 +26,7 @@ urlpatterns = [
                 path("authn/", include("applications.authentication.urls")),
                 path("authz/", include("applications.authorization.urls")),
                 path("binance-api/", include("applications.binance_api.urls")),
+                path("transaction/", include("applications.transaction.urls")),
             ]
         ),
     ),

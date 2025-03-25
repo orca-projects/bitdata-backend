@@ -24,3 +24,17 @@ class PositionHistoryRepository:
                 f"마지막 포지션 종료 시간 조회 중 오류 발생: {e}\n{error_trace}"
             )
             return 0
+
+    @staticmethod
+    def get_position_by_date(binance_id, start_date, end_date):
+        try:
+            positions = PositionHistory.objects.filter(
+                binance_id=binance_id,
+                position_closed_at__gte=start_date,
+                position_closed_at__lte=end_date,
+            ).order_by("-position_closed_at")
+            return positions
+        except Exception as e:
+            error_trace = traceback.format_exc()
+            logger.error(f"포지션 기간 조회 중 오류 발생: {e}\n{error_trace}")
+            return PositionHistory.objects.none()

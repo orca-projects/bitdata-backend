@@ -1,4 +1,8 @@
 from django.urls import path
-from applications.authorization.views import *
+from applications.transaction.views import (
+    Transaction,
+)
 
-urlpatterns = []
+urlpatterns = [
+    path("", Transaction.as_view(), name="transaction"),
+]
