@@ -43,21 +43,21 @@ class TransactionServices:
             realized_pnl = float(item.realized_pnl)
 
             data = {
-                "positionClosed": datetime.fromtimestamp(item.position_closed_at/1000).strftime("%Y-%m-%d %H:%M:%S"),
-                "positionDuration": TransactionServices.format_duration(item.position_duration//1000),
+                "positionClosed": datetime.fromtimestamp(item.position_closed_at / 1000).strftime("%Y-%m-%d %H:%M:%S"),
+                "positionDuration": TransactionServices.format_duration(item.position_duration // 1000),
                 "position": item.position,
                 "symbol": item.symbol,
-                "totalBuy": str(item.opening_size),
-                "totalSell": str(item.closing_size),
-                "pnl": str(item.trade_pnl),
-                "finalPnl": realized_pnl,
-                "totalBuyFee": str(item.opening_commission),
-                "totalSellFee": str(item.closing_commission),
-                "totalFundingCost": str(item.total_funding_fee),
-                "totalFee": str(item.total_commission),
-                "finalRoi": str(item.realized_roi),
-                "avgBuy": str(item.opening_avg_price),
-                "avgSell": str(item.closing_avg_price),
+                "totalBuy": TransactionServices.format_number(item.opening_size),
+                "totalSell": TransactionServices.format_number(item.closing_size),
+                "pnl": TransactionServices.format_number(item.trade_pnl),
+                "finalPnl": TransactionServices.format_number(realized_pnl),
+                "totalBuyFee": TransactionServices.format_number(item.opening_commission),
+                "totalSellFee": TransactionServices.format_number(item.closing_commission),
+                "totalFundingCost": TransactionServices.format_number(item.total_funding_fee),
+                "totalFee": TransactionServices.format_number(item.total_commission),
+                "finalRoi": TransactionServices.format_number(item.realized_roi),
+                "avgBuy": TransactionServices.format_number(item.opening_avg_price),
+                "avgSell": TransactionServices.format_number(item.closing_avg_price),
                 "winlose": "win" if realized_pnl > 0 else "lose" if realized_pnl < 0 else "even",
             }
             formatted.append(data)
@@ -65,12 +65,21 @@ class TransactionServices:
     
     @staticmethod
     def format_duration(seconds: int) -> str:
-        days = seconds // 86400
         hours = (seconds % 86400) // 3600
         minutes = (seconds % 3600) // 60
-        secs = seconds % 60
 
-        if days > 0:
-            return f"{days}일 {hours:02}:{minutes:02}:{secs:02}"
-        else:
-            return f"{hours:02}:{minutes:02}:{secs:02}"
+        parts = []
+
+        if hours > 0:
+            parts.append(f"{hours}시간")
+        if minutes > 0 or not parts:
+            parts.append(f"{minutes}분")
+
+        return " ".join(parts)
+        
+    @staticmethod
+    def format_number(value) -> str:
+        try:
+            return f"{float(value):,.2f}"
+        except (TypeError, ValueError):
+            return "0.00"
