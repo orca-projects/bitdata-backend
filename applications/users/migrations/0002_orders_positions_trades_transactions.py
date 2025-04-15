@@ -122,7 +122,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name="Trades",
+            name="TradeHistory",
             fields=[
                 ("id", models.AutoField(primary_key=True, serialize=False)),
                 ("buyer", models.BooleanField(db_column="buyer")),
@@ -159,12 +159,12 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "db_table": "Trades",
+                "db_table": "TradeHistory",
                 "managed": False,
             },
         ),
         migrations.CreateModel(
-            name="Transactions",
+            name="TransactionHistory",
             fields=[
                 ("id", models.AutoField(primary_key=True, serialize=False)),
                 ("symbol", models.CharField(db_column="symbol", max_length=255)),
@@ -186,7 +186,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "db_table": "Transactions",
+                "db_table": "TransactionHistory",
                 "managed": False,
             },
         ),

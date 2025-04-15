@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 from django.conf import settings
 
 
-class KakaoServices:
+class KakaoService:
     @staticmethod
     def get_login_url(state):
         base_url = "https://kauth.kakao.com/oauth/authorize"
@@ -55,35 +55,35 @@ class KakaoServices:
             raise AuthenticationFailed("토큰 검증에 실패했습니다.")
 
     @staticmethod
-    def get_user_info(access_token):
+    def get_user_data(access_token):
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
         }
 
-        user_info_response = requests.post(
+        user_data_response = requests.post(
             "https://kapi.kakao.com/v2/user/me", headers=headers
         )
 
-        user_info_json = user_info_response.json()
+        user_data_json = user_data_response.json()
 
-        user_info = {
-            "kakao_id": user_info_json.get("id"),
-            "name": user_info_json.get("kakao_account", {}).get("name"),
-            "phone_number": user_info_json.get("kakao_account", {}).get("phone_number"),
-            "email": user_info_json.get("kakao_account", {}).get("email"),
+        user_data = {
+            "kakao_uid": user_data_json.get("id"),
+            "name": user_data_json.get("kakao_account", {}).get("name"),
+            "phone_number": user_data_json.get("kakao_account", {}).get("phone_number"),
+            "email": user_data_json.get("kakao_account", {}).get("email"),
         }
 
-        return user_info
+        return user_data
 
     @staticmethod
-    def validate_user_info(user_info):
-        missing_fields = [key for key, value in user_info.items() if not value]
+    def validate_user_data(user_data):
+        missing_fields = [key for key, value in user_data.items() if not value]
         if missing_fields:
             raise AuthenticationFailed(
                 f"필요한 사용자 정보가 누락되었습니다: {', '.join(missing_fields)}"
             )
 
     @staticmethod
-    def save_session_user_info(request, user_info):
-        request.session["user_info"] = user_info
+    def save_session_user_data(request, user_data):
+        request.session["user_data"] = user_data

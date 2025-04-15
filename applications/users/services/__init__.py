@@ -1,3 +1,3 @@
-from .user_services import UserServices
-from .user_key_info_services import UserKeyInfoServices
-from .profile_services import ProfileServices
+from .user_service import UserService
+from .user_api_key_service import UserApiKeyService
+from .profile_service import ProfileService

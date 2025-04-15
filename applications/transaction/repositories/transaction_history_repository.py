@@ -5,19 +5,19 @@ from decimal import Decimal
 from django.conf import settings
 from django.db import connection
 
-from applications.transaction.models import Transactions
+from applications.transaction.models import TransactionHistory
 
 
 logger = logging.getLogger(__name__)
 
 
 # 25.02.18 윤택한
-# Transactions 테이블 관리 Repository
-class TransactionsRepository:
+# TransactionHistory 테이블 관리 Repository
+class TransactionHistoryRepository:
     @staticmethod
     def get_last_time():
         try:
-            last_income = Transactions.objects.order_by("-time").first()
+            last_income = TransactionHistory.objects.order_by("-time").first()
             return (
                 last_income.time if last_income else settings.BINANCE_DEFAULT_TIME
             )  # 데이터 없으면 기본값 반환
@@ -27,7 +27,7 @@ class TransactionsRepository:
             return settings.BINANCE_DEFAULT_TIME  # 오류 발생 시 기본값 반환
 
     # 25.02.18 윤택한
-    # Transactions Data 저장
+    # TransactionHistory Data 저장
     @staticmethod
     def create(binance_id, transactions_data):
         try:
@@ -36,20 +36,20 @@ class TransactionsRepository:
                 return None
 
             transactions_objects = [
-                Transactions(binance_id=binance_id, **transaction)
+                TransactionHistory(binance_id=binance_id, **transaction)
                 for transaction in transactions_data
             ]
 
-            Transactions.objects.bulk_create(
+            TransactionHistory.objects.bulk_create(
                 transactions_objects, ignore_conflicts=True
             )
             logger.info(
-                f"{len(transactions_objects)}개의 Transactions 데이터를 저장했습니다."
+                f"{len(transactions_objects)}개의 TransactionHistory 데이터를 저장했습니다."
             )
 
         except Exception as e:
-            logger.error(f"Transactions 데이터 저장 중 오류 발생: {e}")
-            raise RuntimeError("Transactions 데이터 저장 중 오류 발생")
+            logger.error(f"TransactionHistory 데이터 저장 중 오류 발생: {e}")
+            raise RuntimeError("TransactionHistory 데이터 저장 중 오류 발생")
 
     @staticmethod
     def get_total_funding_fee(symbol, start_time, end_time) -> Decimal:
@@ -58,7 +58,7 @@ class TransactionsRepository:
                 cursor.execute(
                     """
                     SELECT SUM(ts."income"::NUMERIC)
-                    FROM "Transactions" AS ts
+                    FROM "TransactionHistory" AS ts
                     WHERE ts."symbol" = %s
                     AND ts."time" BETWEEN %s AND %s
                     AND ts."incomeType" = 'FUNDING_FEE'

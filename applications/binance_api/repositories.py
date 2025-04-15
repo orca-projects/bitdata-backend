@@ -46,9 +46,9 @@ class BinanceApiRepository:
     def fetch_trades_data(api_key, secret_key):
         try:
             client = Client(api_key, secret_key)
-            # Binance 선물 API - Trades 조회
+            # Binance 선물 API - TradeHistory 조회
             response = client.futures_account_trades(fromId=0, limit=1000)
-            # Trades Data 반환
+            # TradeHistory Data 반환
             return response
 
         except Exception as e:
@@ -61,9 +61,9 @@ class BinanceApiRepository:
     def fetch_income_history_data(api_key, secret_key, start_time):
         try:
             client = Client(api_key, secret_key)
-            # Binance 선물 API - Transactions 조회
+            # Binance 선물 API - TransactionHistory 조회
             response = client.futures_income_history(startTime=start_time, limit=1000)
-            # Transactions Data 반환
+            # TransactionHistory Data 반환
             return response
 
         except Exception as e:

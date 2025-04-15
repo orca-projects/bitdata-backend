@@ -6,7 +6,7 @@ from applications.transaction.models import PositionHistory, PositionOrders
 from applications.transaction.repositories import PositionHistoryRepository
 
 
-class TransactionServices:
+class TransactionService:
     @staticmethod
     def save_position(position_dto_lsit):
         with transaction.atomic():
@@ -34,7 +34,7 @@ class TransactionServices:
             binance_id, start_date, end_date
         )
 
-        return TransactionServices.format_transaction(transaction)
+        return TransactionService.format_transaction(transaction)
 
     @staticmethod
     def format_transaction(transaction):
@@ -43,26 +43,40 @@ class TransactionServices:
             realized_pnl = float(item.realized_pnl)
 
             data = {
-                "positionClosed": datetime.fromtimestamp(item.position_closed_at / 1000).strftime("%Y-%m-%d %H:%M:%S"),
-                "positionDuration": TransactionServices.format_duration(item.position_duration // 1000),
+                "positionClosed": datetime.fromtimestamp(
+                    item.position_closed_at / 1000
+                ).strftime("%Y-%m-%d %H:%M:%S"),
+                "positionDuration": TransactionService.format_duration(
+                    item.position_duration // 1000
+                ),
                 "position": item.position,
                 "symbol": item.symbol,
-                "totalBuy": TransactionServices.format_number(item.opening_size),
-                "totalSell": TransactionServices.format_number(item.closing_size),
-                "pnl": TransactionServices.format_number(item.trade_pnl),
-                "finalPnl": TransactionServices.format_number(realized_pnl),
-                "totalBuyFee": TransactionServices.format_number(item.opening_commission),
-                "totalSellFee": TransactionServices.format_number(item.closing_commission),
-                "totalFundingCost": TransactionServices.format_number(item.total_funding_fee),
-                "totalFee": TransactionServices.format_number(item.total_commission),
-                "finalRoi": TransactionServices.format_number(item.realized_roi),
-                "avgBuy": TransactionServices.format_number(item.opening_avg_price),
-                "avgSell": TransactionServices.format_number(item.closing_avg_price),
-                "winlose": "win" if realized_pnl > 0 else "lose" if realized_pnl < 0 else "even",
+                "totalBuy": TransactionService.format_number(item.opening_size),
+                "totalSell": TransactionService.format_number(item.closing_size),
+                "pnl": TransactionService.format_number(item.trade_pnl),
+                "finalPnl": TransactionService.format_number(realized_pnl),
+                "totalBuyFee": TransactionService.format_number(
+                    item.opening_commission
+                ),
+                "totalSellFee": TransactionService.format_number(
+                    item.closing_commission
+                ),
+                "totalFundingCost": TransactionService.format_number(
+                    item.total_funding_fee
+                ),
+                "totalFee": TransactionService.format_number(item.total_commission),
+                "finalRoi": TransactionService.format_number(item.realized_roi),
+                "avgBuy": TransactionService.format_number(item.opening_avg_price),
+                "avgSell": TransactionService.format_number(item.closing_avg_price),
+                "winlose": (
+                    "win"
+                    if realized_pnl > 0
+                    else "lose" if realized_pnl < 0 else "even"
+                ),
             }
             formatted.append(data)
         return formatted
-    
+
     @staticmethod
     def format_duration(seconds: int) -> str:
         hours = (seconds % 86400) // 3600
@@ -76,7 +90,7 @@ class TransactionServices:
             parts.append(f"{minutes}분")
 
         return " ".join(parts)
-        
+
     @staticmethod
     def format_number(value) -> str:
         try:

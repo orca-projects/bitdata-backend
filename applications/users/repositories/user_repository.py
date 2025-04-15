@@ -1,6 +1,6 @@
 import logging
 
-from applications.users.models.user import User
+from applications.users.models.user_model import User
 
 
 logger = logging.getLogger(__name__)
@@ -8,18 +8,18 @@ logger = logging.getLogger(__name__)
 
 class UserRepository:
     @staticmethod
-    def find_by_kakao_id(kakao_id):
-        user_kakao = User.objects.filter(kakao_id=kakao_id, deleted_at=None).first()
-        return user_kakao
+    def get_user_id_by_kakao_uid(kakao_uid: int) -> int | None:
+        user = User.objects.filter(kakao_uid=kakao_uid, deleted_at=None).first()
+        return user.id if user else None
 
     @staticmethod
-    def create(user_info):
+    def set_user(user_data):
         try:
             User.objects.create(
-                kakao_id=user_info.get("kakao_id"),
-                name=user_info.get("name"),
-                phone_number=user_info.get("phone_number"),
-                account_email=user_info.get("email"),
+                kakao_uid=user_data.get("kakao_uid"),
+                name=user_data.get("name"),
+                phone_number=user_data.get("phone_number"),
+                account_email=user_data.get("email"),
             )
         except Exception as e:
             raise e

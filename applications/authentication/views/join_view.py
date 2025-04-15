@@ -4,16 +4,16 @@ from rest_framework.views import APIView
 
 from core.utils.response_helper import ResponseHelper
 
-from applications.authentication.services import JoinServices
+from applications.authentication.services import JoinService
 from applications.users.repositories import UserRepository
 
 
 class Join(APIView):
     def get(self, request) -> JsonResponse:
         try:
-            user_info = JoinServices.get_user_info(request)
+            user_data = JoinService.get_user_data(request)
 
-            UserRepository.create(user_info)
+            UserRepository.set_user(user_data)
         except ValueError as ve:
             print(ve)
             return ResponseHelper.error(message="ValueError")

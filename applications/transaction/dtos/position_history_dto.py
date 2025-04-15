@@ -3,7 +3,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from datetime import datetime, timedelta
 from django.utils import timezone
 
-from applications.transaction.repositories import TransactionsRepository
+from applications.transaction.repositories import TransactionHistoryRepository
 
 
 @dataclass
@@ -97,7 +97,7 @@ class PositionDto:
         self.closing_avg_price = abs(self.closing_avg_price / self._close_quantity)
 
     def calculate_total_funding_fee(self):
-        self.total_funding_fee = TransactionsRepository.get_total_funding_fee(
+        self.total_funding_fee = TransactionHistoryRepository.get_total_funding_fee(
             self.symbol, self._position_opened_at, self.position_closed_at
         )
 

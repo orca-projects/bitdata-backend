@@ -3,15 +3,15 @@ import traceback
 
 from django.db import connection
 
-from applications.transaction.models import Orders
+from applications.transaction.models import OrderHistory
 
 
 logger = logging.getLogger(__name__)
 
 
 # 25.02.18 윤택한
-# Orders 테이블 관리 Repository
-class OrdersRepository:
+# OrderHistory 테이블 관리 Repository
+class OrderHistoryRepository:
     # 25.02.18 윤택한
     # orders data 저장
     @staticmethod
@@ -22,16 +22,18 @@ class OrdersRepository:
                 return None
 
             orders_objects = [
-                Orders(binance_id=binance_id, **order) for order in orders_data
+                OrderHistory(binance_id=binance_id, **order) for order in orders_data
             ]
 
-            Orders.objects.bulk_create(orders_objects)
-            logger.info(f"{len(orders_objects)}개의 Orders 데이터를 저장했습니다.")
+            OrderHistory.objects.bulk_create(orders_objects)
+            logger.info(
+                f"{len(orders_objects)}개의 OrderHistory 데이터를 저장했습니다."
+            )
 
         except Exception as e:
             error_trace = traceback.format_exc()
-            logger.error(f"Orders 데이터 저장 중 오류 발생: {e}\n{error_trace}")
-            raise RuntimeError("Orders 데이터 저장 중 오류 발생")
+            logger.error(f"OrderHistory 데이터 저장 중 오류 발생: {e}\n{error_trace}")
+            raise RuntimeError("OrderHistory 데이터 저장 중 오류 발생")
 
     @staticmethod
     def get_order_summary(binance_id, after_order_id):
@@ -49,13 +51,13 @@ class OrdersRepository:
                                 o."executedQty"::NUMERIC * o."avgPrice"::NUMERIC AS size,
                                 COALESCE(SUM(CASE WHEN ts."incomeType" = 'COMMISSION' THEN CAST(ts."income" AS NUMERIC) ELSE 0 END), 0) AS commission,
                                 COALESCE(SUM(CASE WHEN ts."incomeType" = 'REALIZED_PNL' THEN CAST(ts."income" AS NUMERIC) ELSE 0 END), 0) AS realized_pnl,
-                                o."time"
-                            FROM "Orders" AS o
-                            LEFT JOIN "Trades" AS tr ON tr."binanceId" = o."binanceId" AND tr."symbol" = o."symbol" AND tr."orderId" = o."orderId" 
-                            LEFT JOIN "Transactions" AS ts ON ts."binanceId" = o."binanceId"  AND ts."symbol" = o."symbol" AND ts."tradeId" = tr."tradeId"
+                                o."updateTime" AS time
+                            FROM "OrderHistory" AS o
+                            LEFT JOIN "TradeHistory" AS tr ON tr."binanceId" = o."binanceId" AND tr."symbol" = o."symbol" AND tr."orderId" = o."orderId" 
+                            LEFT JOIN "TransactionHistory" AS ts ON ts."binanceId" = o."binanceId"  AND ts."symbol" = o."symbol" AND ts."tradeId" = tr."tradeId"
                             WHERE o."binanceId" = %s
                             AND o."time" >= %s
-                            GROUP BY o."id", o."binanceId", o."symbol", o."orderId", o."side", o."executedQty", o."avgPrice", o."time"
+                            GROUP BY o."id", o."binanceId", o."symbol", o."orderId", o."side", o."executedQty", o."avgPrice", o."updateTime"
                         )
                         SELECT *
                         FROM order_summary

@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="User",
             fields=[
                 ("id", models.AutoField(primary_key=True, serialize=False)),
-                ("kakao_id", models.BigIntegerField(db_column="kakaoId", unique=True)),
+                ("kakao_uid", models.BigIntegerField(db_column="kakaoId", unique=True)),
                 (
                     "account_email",
                     models.EmailField(db_column="accountEmail", max_length=255),
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name="UserKeyInfo",
+            name="UserApiKey",
             fields=[
                 ("id", models.AutoField(primary_key=True, serialize=False)),
                 ("binance_id", models.CharField(db_column="binanceId", max_length=255)),
@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "db_table": "UserKeyInfo",
+                "db_table": "UserApiKey",
                 "managed": False,
             },
         ),

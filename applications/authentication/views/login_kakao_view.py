@@ -6,18 +6,18 @@ from rest_framework.views import APIView
 
 from core.utils.response_helper import ResponseHelper
 
-from applications.authentication.services import KakaoServices
-from applications.authentication.utils import StateHelper
-from applications.users.services import UserServices, UserKeyInfoServices
+from applications.authentication.services import KakaoService
+from applications.authentication.utils import StateUtil
+from applications.users.services import UserService, UserApiKeyService
 
 
 class KakaoLogin(APIView):
     @method_decorator(ensure_csrf_cookie)
     def get(self, request) -> JsonResponse:
-        state = StateHelper.get_sate()
+        state = StateUtil.get_sate()
         request.session["oauth_state"] = state
 
-        login_url = KakaoServices.get_login_url(state)
+        login_url = KakaoService.get_login_url(state)
 
         return ResponseHelper.success(data={"login_url": login_url})
 
@@ -29,19 +29,19 @@ class KakaoLoginCallback(APIView):
         request_state = request.data.get("state")
 
         try:
-            KakaoServices.validate_sate(session_state, request_state)
+            KakaoService.validate_sate(session_state, request_state)
 
-            access_token = KakaoServices.get_access_token(code)
-            KakaoServices.validate_access_token(access_token)
+            access_token = KakaoService.get_access_token(code)
+            KakaoService.validate_access_token(access_token)
 
-            user_info = KakaoServices.get_user_info(access_token)
-            KakaoServices.validate_user_info(user_info)
+            user_data = KakaoService.get_user_data(access_token)
+            KakaoService.validate_user_data(user_data)
 
-            KakaoServices.save_session_user_info(request, user_info)
+            KakaoService.save_session_user_data(request, user_data)
 
-            kakao_id = user_info["kakao_id"]
-            is_member = UserServices.is_member(kakao_id)
-            has_binance_key = UserKeyInfoServices.has_binance_api_key(kakao_id)
+            kakao_uid = user_data["kakao_uid"]
+            is_member = UserService.is_member(kakao_uid)
+            has_binance_key = UserApiKeyService.has_binance_api_key(kakao_uid)
         except Exception as e:
             print(e)
             return ResponseHelper.error()

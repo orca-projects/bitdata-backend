@@ -1,3 +1,3 @@
-from .transaction_services import TransactionServices
-from .collect_services import CollectServices
-from .position_calculator_services import PositionCalculatorServices
+from .transaction_service import TransactionService
+from .collect_service import CollectService
+from .position_calculator_service import PositionCalculatorService

@@ -1,2 +1,2 @@
 from .user_repository import UserRepository
-from .user_key_info_repository import UserKeyInfoRepository
+from .user_api_key_repository import UserApiKeyRepository

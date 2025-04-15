@@ -1,2 +1,2 @@
-from .login_kakao_services import *
-from .join_services import *
+from .login_kakao_service import *
+from .join_service import *

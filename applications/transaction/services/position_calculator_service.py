@@ -1,23 +1,22 @@
 from collections import defaultdict
-from datetime import datetime
 from decimal import Decimal
 
-from applications.users.services import UserKeyInfoServices
+from applications.users.services import UserApiKeyService
 from applications.binance_api.services import BinanceApiServices
 from applications.transaction.repositories import (
     PositionHistoryRepository,
-    OrdersRepository,
+    OrderHistoryRepository,
 )
 from applications.transaction.dtos import PositionDto
 
 
-class PositionCalculatorServices:
+class PositionCalculatorService:
     @staticmethod
-    def calculate_position(kakao_id, binance_api_key):
-        binance_id = UserKeyInfoServices.get_binance_id(kakao_id)
-        quantity_dict = PositionCalculatorServices.get_quantity_dict(binance_api_key)
+    def calculate_position(kakao_uid, binance_api_key):
+        binance_id = UserApiKeyService.get_binance_id(kakao_uid)
+        quantity_dict = PositionCalculatorService.get_quantity_dict(binance_api_key)
         last_closed_at = PositionHistoryRepository.get_last_closed_at(binance_id)
-        orders = OrdersRepository.get_order_summary(binance_id, last_closed_at)
+        orders = OrderHistoryRepository.get_order_summary(binance_id, last_closed_at)
 
         in_progress_position_dto_dict = {}
         completed_position_dto_list = []
