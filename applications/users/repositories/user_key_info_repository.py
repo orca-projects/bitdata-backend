@@ -58,6 +58,7 @@ class UserKeyInfoRepository:
                 kakao_id=user_kakao,
                 binance_api_key=api_key,
                 binance_secret_key=secret_key,
+                is_key_active = True # managed=False로 인해 default 값이 DB에 반영되지 않으므로 True를 명시적으로 지정
             )
             return user_key_info
         except Exception as e:
@@ -74,3 +75,11 @@ class UserKeyInfoRepository:
         except Exception as e:
             logger.error(f"UserKeyInfo 업데이트 중 오류 발생: {e}")
             raise RuntimeError("UserKeyInfo 업데이트 중 오류 발생")
+        
+    @staticmethod
+    def deactivate_all_active_keys(kakao_id):
+        try:
+            UserKeyInfo.objects.filter(kakao_id=kakao_id, is_key_active = True).update(is_key_active = False)
+        except Exception as e:
+            logger.error(f"{kakao_id}의 기존 API키 비활성화 중 오류 발생: {e}")
+            raise RuntimeError ("API키 비활성화 중 오류 발생")
