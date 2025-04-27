@@ -2,20 +2,13 @@ from django.db import models
 from django.utils import timezone
 
 
-from applications.users.models import UserBinance
-
-
 class PositionHistory(models.Model):
-    binance_uid = models.ForeignKey(
-        UserBinance,
-        to_field="binance_uid",
-        on_delete=models.CASCADE,
-        db_column="binanceUid",
-    )
+    id = models.AutoField(primary_key=True)
+    binance_uid = models.BigIntegerField(db_column="binanceUid")
     position_closed_at = models.DateTimeField(db_column="positionClosedAt")
     position = models.CharField(max_length=5)
-    position_duration = models.DateTimeField(db_column="positionDuration")
-    symbol = models.CharField(max_length=12)
+    position_duration = models.BigIntegerField(db_column="positionDuration")
+    symbol = models.CharField(max_length=20)
     opening_size = models.DecimalField(
         db_column="openingSize", max_digits=20, decimal_places=6
     )

@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from rest_framework.views import APIView
-from core.utils import ResponseHelper
+from core.utils import ResponseUtil
 
 from applications.users.services import (
     UserApiKeyService,
@@ -26,25 +26,15 @@ class BinanceKey(APIView):
             UserApiKeyService.save_binance_api_key(kakao_uid, binance_api_key)
         except Exception as e:
             print(e)
-            return ResponseHelper.error()
+            return ResponseUtil.error()
 
-        return ResponseHelper.success()
+        return ResponseUtil.success()
 
 
 class Collect(APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.is_connected = True
-        self.binance_id = None
-        self.last_position_id = None
-        self.all_orders_data = None
-        self.trades_data = None
-        self.transactions_data = None
-        self.profile = None
-
     def get(self, request) -> JsonResponse:
         try:
-            user_data = request.session.get("user_data", {})
+            user_data = request.session.get("user_data")
             kakao_uid = user_data.get("kakao_uid")
 
             binance_api_key = UserApiKeyService.get_binance_api_key(kakao_uid)
@@ -60,9 +50,9 @@ class Collect(APIView):
             profile = ProfileService.get_profile(kakao_uid)
         except Exception as e:
             print(f"Error in Collect.get(): {e}")
-            return ResponseHelper.error()
+            return ResponseUtil.error()
 
-        return ResponseHelper.success(
+        return ResponseUtil.success(
             data={
                 "profile": profile,
             },
@@ -77,9 +67,9 @@ class Profile(APIView):
             profile = ProfileService.get_profile(kakao_uid)
         except Exception as e:
             print(e)
-            return ResponseHelper.error()
+            return ResponseUtil.error()
 
-        return ResponseHelper.success(
+        return ResponseUtil.success(
             data={
                 "profile": profile,
             },

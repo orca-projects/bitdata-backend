@@ -21,48 +21,52 @@ class KakaoService:
         return f"{base_url}?{urlencode(params)}"
 
     @staticmethod
-    def validate_sate(session_state, request_state):
+    def check_sate(request):
+        session_state = request.session.get("oauth_state")
+        request_state = request.data.get("state")
+
         if session_state != request_state:
-            raise AuthenticationFailed("State 값이 일치하지 않습니다.")
+            raise AuthenticationFailed("state is invalid")
 
     @staticmethod
-    def get_access_token(code):
-        data = {
-            "grant_type": "authorization_code",
-            "client_id": settings.KAKAO_REST_API_KEY,
-            "redirect_uri": settings.KAKAO_REDIRECT_URL,
-            "client_secret": settings.KAKAO_CLIENT_SECRET,
-            "code": code,
-        }
-        headers = {"Content-type": "application/x-www-form-urlencoded;charset=utf-8"}
+    def get_access_token(request):
+        code = request.data.get("code")
+
+        if not code:
+            raise ValueError("code is null")
 
         access_token_response = requests.post(
-            "https://kauth.kakao.com/oauth/token", data=data, headers=headers
+            "https://kauth.kakao.com/oauth/token",
+            data={
+                "grant_type": "authorization_code",
+                "client_id": settings.KAKAO_REST_API_KEY,
+                "redirect_uri": settings.KAKAO_REDIRECT_URL,
+                "client_secret": settings.KAKAO_CLIENT_SECRET,
+                "code": code,
+            },
+            headers={"Content-type": "application/x-www-form-urlencoded;charset=utf-8"},
         )
 
         access_token = access_token_response.json().get("access_token")
-        return access_token
-
-    @staticmethod
-    def validate_access_token(access_token):
-        headers = {"Authorization": f"Bearer {access_token}"}
 
         token_validate_response = requests.get(
-            "https://kapi.kakao.com/v1/user/access_token_info", headers=headers
+            "https://kapi.kakao.com/v1/user/access_token_info",
+            headers={"Authorization": f"Bearer {access_token}"},
         )
 
         if token_validate_response.status_code != 200:
-            raise AuthenticationFailed("토큰 검증에 실패했습니다.")
+            raise AuthenticationFailed("token is invalid")
+
+        return access_token
 
     @staticmethod
-    def get_user_data(access_token):
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
-        }
-
+    def fetch_user_data(access_token):
         user_data_response = requests.post(
-            "https://kapi.kakao.com/v2/user/me", headers=headers
+            "https://kapi.kakao.com/v2/user/me",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
+            },
         )
 
         user_data_json = user_data_response.json()
@@ -74,16 +78,12 @@ class KakaoService:
             "email": user_data_json.get("kakao_account", {}).get("email"),
         }
 
+        KakaoService.validate_user_data(user_data)
+
         return user_data
 
     @staticmethod
     def validate_user_data(user_data):
         missing_fields = [key for key, value in user_data.items() if not value]
         if missing_fields:
-            raise AuthenticationFailed(
-                f"필요한 사용자 정보가 누락되었습니다: {', '.join(missing_fields)}"
-            )
-
-    @staticmethod
-    def save_session_user_data(request, user_data):
-        request.session["user_data"] = user_data
+            raise AuthenticationFailed("user_data is invalid")

@@ -1,6 +1,7 @@
 from applications.users.repositories import (
     UserRepository,
     UserApiKeyRepository,
+    UserBinanceRepository,
 )
 
 
@@ -8,15 +9,15 @@ class ProfileService:
     @staticmethod
     def get_profile(kakao_uid):
         try:
-            user_kakao = UserRepository.get_user_id_by_kakao_uid(kakao_uid)
-            username = user_kakao.name
+            user = UserRepository.get_user_by_kakao_uid(kakao_uid)
+            username = user.name
 
-            active_user_api_key = UserApiKeyRepository.find_active_by_kakao_uid(
-                kakao_uid
-            )
+            active_user_api_key = UserApiKeyRepository.get_active_by_user_id(user.id)
             is_connected = active_user_api_key.is_connected
             api_key = active_user_api_key.binance_api_key
-            binance_uid = active_user_api_key.binance_id
+            binance_uid = UserBinanceRepository.get_binance_uid_by_id(
+                active_user_api_key.user_binance_id
+            )
 
             username_masked = ProfileService.mask_username(username)
             api_key_masked = ProfileService.mask_api_key(api_key)

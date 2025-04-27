@@ -1,2 +1,3 @@
 from .user_repository import UserRepository
 from .user_api_key_repository import UserApiKeyRepository
+from .user_binance_repository import UserBinanceRepository

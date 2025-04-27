@@ -1,7 +1,6 @@
 import logging
 
 from applications.users.models import UserApiKey
-from applications.users.repositories import UserRepository
 
 
 logger = logging.getLogger(__name__)
@@ -21,18 +20,18 @@ class UserApiKeyRepository:
             raise RuntimeError("데이터베이스 조회 중 오류 발생")
 
     @staticmethod
-    def find_active_by_kakao_uid(kakao_uid):
+    def get_active_by_user_id(user_id):
         user_api_key = UserApiKey.objects.filter(
-            kakao_uid=kakao_uid, is_key_active=True
+            user_id=user_id, is_key_active=True
         ).first()
         return user_api_key
 
     # 25.02.27(목) 윤택한
     # Last Collected 값이 있으면 해당 값을 없으면 None을 반환
     @staticmethod
-    def get_last_collected(binance_id):
+    def get_last_collected(binance_uid):
         last_collected = (
-            UserApiKey.objects.filter(binance_id=binance_id)
+            UserApiKey.objects.filter(binance_uid=binance_uid)
             .order_by("-last_collected")
             .values_list("last_collected", flat=True)
             .first()
@@ -40,10 +39,10 @@ class UserApiKeyRepository:
         return last_collected if last_collected else None
 
     @staticmethod
-    def create(kakao_uid, binance_api_key):
+    def set_user_api_key(user_id, binance_api_key):
         try:
             user_api_key = UserApiKey.objects.create(
-                user_id=UserRepository.get_user_id_by_kakao_uid(kakao_uid=kakao_uid),
+                user_id=user_id,
                 binance_api_key=binance_api_key.get("api_key"),
                 binance_secret_key=binance_api_key.get("secret_key"),
             )
@@ -53,7 +52,7 @@ class UserApiKeyRepository:
             raise RuntimeError("Binance API 키 생성 중 오류 발생")
 
     @staticmethod
-    def update(user_api_key, **kwargs):
+    def update_user_api_key(user_api_key, **kwargs):
         try:
             for key, value in kwargs.items():
                 setattr(user_api_key, key, value)

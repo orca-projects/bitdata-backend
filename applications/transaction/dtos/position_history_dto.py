@@ -1,18 +1,20 @@
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
-from datetime import datetime, timedelta
 from django.utils import timezone
-
+from datetime import timedelta
 from applications.transaction.repositories import TransactionHistoryRepository
+from applications.users.models import UserBinance
 
 
 @dataclass
 class PositionDto:
-    binance_id: str
+    binance_uid: UserBinance
     symbol: str
     position: str
-    position_closed_at: int
 
+    position_closed_at: timezone.datetime = field(
+        default_factory=lambda: timezone.now() - timedelta(days=365 * 100)
+    )
     position_duration: int = field(default=0)
     opening_size: Decimal = Decimal("0")
     closing_size: Decimal = Decimal("0")
@@ -26,18 +28,20 @@ class PositionDto:
     total_funding_fee: Decimal = Decimal("0")
     total_commission: Decimal = Decimal("0")
 
-    _order_ids: list[str] = field(default_factory=list)
-    _position_opened_at: datetime = field(default_factory=timezone.now)
+    _order_history_ids: list[str] = field(default_factory=list)
+    _position_opened_at: timezone.datetime = field(
+        default_factory=lambda: timezone.now() + timedelta(days=365 * 100)
+    )
     _open_quantity: int = field(default=0)
     _close_quantity: int = field(default=0)
 
-    def insert_order(self, order: dict):
-        self._order_ids.append(order["id"])
+    def insert_order_history(self, order_history: dict):
+        self._order_history_ids.append(order_history["id"])
 
-        side = order["side"]
-        executed_quantity = order["executed_quantity"]
-        size = order["size"]
-        commission = order["commission"]
+        side = order_history["side"]
+        executed_quantity = order_history["executed_quantity"]
+        size = order_history["size"]
+        commission = order_history["commission"]
 
         if self.position == "LONG":
             if side == "BUY":
@@ -45,7 +49,6 @@ class PositionDto:
                 self.opening_size += size
                 self.opening_avg_price += size
                 self.opening_commission += commission
-
             if side == "SELL":
                 self._close_quantity += executed_quantity
                 self.closing_size += size
@@ -57,30 +60,43 @@ class PositionDto:
                 self.opening_size += size
                 self.opening_avg_price += size
                 self.opening_commission += commission
-
             if side == "BUY":
                 self._close_quantity += executed_quantity
                 self.closing_size += size
                 self.closing_avg_price += size
                 self.closing_commission += commission
 
-        realized_pnl = order["realized_pnl"]
+        realized_pnl = order_history["realized_pnl"]
         self.trade_pnl += realized_pnl
 
-        time = order["time"]
-        self._position_opened_at = time
+        self._position_opened_at = min(
+            self._position_opened_at, order_history["trade_start_time"]
+        )
+        self.position_closed_at = max(
+            self.position_closed_at, order_history["trade_end_time"]
+        )
 
     def calculate(self):
         self.calculate_total_funding_fee()
         self.calculate_total_commission()
-
         self.calculate_position_duration()
         self.calculate_realized_pnl()
         self.calculate_realized_roi()
         self.calculate_avg_price()
 
+    def calculate_total_funding_fee(self):
+        self.total_funding_fee = TransactionHistoryRepository.get_total_funding_fee(
+            self.symbol, self._position_opened_at, self.position_closed_at
+        )
+
+    def calculate_total_commission(self):
+        self.total_commission = (
+            self.opening_commission + self.closing_commission + self.total_funding_fee
+        )
+
     def calculate_position_duration(self):
-        self.position_duration = self.position_closed_at - self._position_opened_at
+        duration = self.position_closed_at - self._position_opened_at
+        self.position_duration = int(duration.total_seconds())
 
     def calculate_realized_pnl(self):
         self.realized_pnl = self.trade_pnl + self.total_commission
@@ -96,19 +112,9 @@ class PositionDto:
         self.opening_avg_price = abs(self.opening_avg_price / self._open_quantity)
         self.closing_avg_price = abs(self.closing_avg_price / self._close_quantity)
 
-    def calculate_total_funding_fee(self):
-        self.total_funding_fee = TransactionHistoryRepository.get_total_funding_fee(
-            self.symbol, self._position_opened_at, self.position_closed_at
-        )
-
-    def calculate_total_commission(self):
-        self.total_commission = (
-            self.opening_commission + self.closing_commission + self.total_funding_fee
-        )
-
     def to_position_history_data(self):
         return {
-            "binance_id": self.binance_id,
+            "binance_uid": self.binance_uid,
             "position_closed_at": self.position_closed_at,
             "position": self.position,
             "position_duration": self.position_duration,
@@ -126,12 +132,12 @@ class PositionDto:
             "total_commission": self.total_commission,
         }
 
-    def to_position_order_data(self, position_id: int):
+    def to_position_orders_data(self, position_history_id: int):
         return [
             {
-                "binance_id": self.binance_id,
-                "order_id": order_id,
-                "position_id": position_id,
+                "binance_uid": self.binance_uid,
+                "order_history_id": order_history_id,
+                "position_history_id": position_history_id,
             }
-            for order_id in self._order_ids
+            for order_history_id in self._order_history_ids
         ]

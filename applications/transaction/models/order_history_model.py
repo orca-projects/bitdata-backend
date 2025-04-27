@@ -5,13 +5,9 @@ from applications.users.models import UserBinance
 
 
 class OrderHistory(models.Model):
-    binance_uid = models.ForeignKey(
-        UserBinance,
-        to_field="binance_uid",
-        on_delete=models.CASCADE,
-        db_column="binanceUid",
-    )
-    symbol = models.CharField(max_length=12)
+    id = models.AutoField(primary_key=True)
+    binance_uid = models.BigIntegerField(db_column="binanceUid")
+    symbol = models.CharField(max_length=20)
     order_id = models.BigIntegerField(db_column="orderId")
     client_order_id = models.CharField(db_column="clientOrderId", max_length=36)
     time = models.DateTimeField()
@@ -35,13 +31,13 @@ class OrderHistory(models.Model):
     )
     reduce_only = models.BooleanField(db_column="reduceOnly", default=False)
     close_position = models.BooleanField(db_column="closePosition", default=False)
-    working_type = models.CharField(db_column="workingType", max_length=13)
+    working_type = models.CharField(db_column="workingType", max_length=20)
     price_protect = models.BooleanField(db_column="priceProtect", default=False)
     price_match = models.CharField(
         db_column="priceMatch", max_length=10, default="NONE"
     )
     self_trade_prevention_mode = models.CharField(
-        db_column="selfTradePreventionMode", max_length=13, default="NONE"
+        db_column="selfTradePreventionMode", max_length=20, default="NONE"
     )
     cum_quote = models.DecimalField(
         db_column="cumQuote", max_digits=20, decimal_places=6, default=0

@@ -1,17 +1,11 @@
 from django.db import models
 from django.utils import timezone
 
-from applications.users.models import UserBinance
-
 
 class TransactionHistory(models.Model):
-    binance_uid = models.ForeignKey(
-        UserBinance,
-        to_field="binance_uid",
-        on_delete=models.CASCADE,
-        db_column="binanceUid",
-    )
-    symbol = models.CharField(max_length=12, null=True, blank=True)
+    id = models.AutoField(primary_key=True)
+    binance_uid = models.BigIntegerField(db_column="binanceUid")
+    symbol = models.CharField(max_length=20, null=True, blank=True)
     tran_id = models.BigIntegerField(db_column="tranId")
     trade_id = models.BigIntegerField(db_column="tradeId", null=True, blank=True)
     time = models.DateTimeField()

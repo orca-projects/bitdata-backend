@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
-
+from django.utils import timezone
 from django.db import transaction
-
+from core.utils import DateUtil
 from applications.transaction.models import PositionHistory, PositionOrders
 from applications.transaction.repositories import PositionHistoryRepository
 
@@ -15,23 +14,34 @@ class TransactionService:
                     **position_dto.to_position_history_data()
                 )
 
-                position_order_data = position_dto.to_position_order_data(
+                position_orders_data = position_dto.to_position_orders_data(
                     position_history_obj.id
                 )
+
                 PositionOrders.objects.bulk_create(
-                    [PositionOrders(**order_data) for order_data in position_order_data]
+                    [
+                        PositionOrders(**order_datas)
+                        for order_datas in position_orders_data
+                    ],
+                    ignore_conflicts=True,
                 )
 
     @staticmethod
-    def get_position_by_date(binance_id, start_date=None, end_date=None):
-        now = datetime.now()
+    def get_position_by_date(binance_uid, start_date=None, end_date=None):
+        now = timezone.now()
+
         if start_date is None:
-            start_date = int((now - timedelta(days=7)).timestamp())
+            start_date = now - timezone.timedelta(days=7)
+        else:
+            start_date = DateUtil.parse_timestamp_to_datetime(start_date)
+
         if end_date is None:
-            end_date = int(now.timestamp())
+            end_date = now
+        else:
+            end_date = DateUtil.parse_timestamp_to_datetime(end_date)
 
         transaction = PositionHistoryRepository.get_position_by_date(
-            binance_id, start_date, end_date
+            binance_uid, start_date, end_date
         )
 
         return TransactionService.format_transaction(transaction)
@@ -43,11 +53,11 @@ class TransactionService:
             realized_pnl = float(item.realized_pnl)
 
             data = {
-                "positionClosed": datetime.fromtimestamp(
-                    item.position_closed_at / 1000
-                ).strftime("%Y-%m-%d %H:%M:%S"),
+                "positionClosed": timezone.localtime(item.position_closed_at).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                ),
                 "positionDuration": TransactionService.format_duration(
-                    item.position_duration // 1000
+                    item.position_duration
                 ),
                 "position": item.position,
                 "symbol": item.symbol,
@@ -81,13 +91,16 @@ class TransactionService:
     def format_duration(seconds: int) -> str:
         hours = (seconds % 86400) // 3600
         minutes = (seconds % 3600) // 60
+        secs = seconds % 60
 
         parts = []
 
         if hours > 0:
             parts.append(f"{hours}시간")
-        if minutes > 0 or not parts:
+        if minutes > 0:
             parts.append(f"{minutes}분")
+        if secs > 0 or not parts:
+            parts.append(f"{secs}초")
 
         return " ".join(parts)
 

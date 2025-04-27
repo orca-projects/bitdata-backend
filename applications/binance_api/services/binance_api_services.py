@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-
+from core.utils import DateUtil
 from applications.transaction.repositories import TransactionHistoryRepository
 from applications.binance_api.repositories import BinanceApiRepository
 
@@ -18,7 +18,7 @@ class BinanceApiServices:
         return BinanceApiRepository.is_connected(api_key, secret_key)
 
     @staticmethod
-    def get_binance_id(binance_api_key: dict) -> str:
+    def get_binance_uid(binance_api_key: dict) -> str:
         api_key, secret_key = BinanceApiServices._get_keys(binance_api_key)
         return BinanceApiRepository.get_binance_uid(api_key, secret_key)
 
@@ -49,10 +49,12 @@ class BinanceApiServices:
                         "position_side": item["positionSide"],
                         "status": item["status"],
                         "stop_price": Decimal(item.get("stopPrice") or "0"),
-                        "time": int(item["time"]),
+                        "time": DateUtil.parse_timestamp_to_datetime(item["time"]),
                         "time_in_force": item["timeInForce"],
                         "type": item["type"],
-                        "update_time": int(item["updateTime"]),
+                        "update_time": DateUtil.parse_timestamp_to_datetime(
+                            item["updateTime"]
+                        ),
                         "working_type": item["workingType"],
                         "price_protect": item["priceProtect"],
                         "price_match": item["priceMatch"],
@@ -91,7 +93,7 @@ class BinanceApiServices:
                         "quote_qty": Decimal(item["quoteQty"]),
                         "commission": Decimal(item["commission"]),
                         "commission_asset": item["commissionAsset"],
-                        "time": int(item["time"]),
+                        "time": DateUtil.parse_timestamp_to_datetime(item["time"]),
                         "position_side": item["positionSide"],
                         "buyer": item["buyer"],
                         "maker": item["maker"],
@@ -103,9 +105,11 @@ class BinanceApiServices:
         return trades
 
     @staticmethod
-    def get_transactions_data(binance_api_key: dict) -> list[dict]:
+    def get_transactions_data(binance_uid, binance_api_key: dict) -> list[dict]:
         api_key, secret_key = BinanceApiServices._get_keys(binance_api_key)
-        last_time = TransactionHistoryRepository.get_last_time()
+        last_time = TransactionHistoryRepository.get_last_time_by_binance_uid(
+            binance_uid
+        )
         raw_data = BinanceApiRepository.fetch_income_history_data(
             api_key, secret_key, last_time
         )
@@ -124,7 +128,7 @@ class BinanceApiServices:
                         "income": Decimal(item["income"]),
                         "asset": item["asset"],
                         "info": item.get("info") or "",
-                        "time": int(item["time"]),
+                        "time": DateUtil.parse_timestamp_to_datetime(item["time"]),
                         "tran_id": int(item["tranId"]),
                         "trade_id": (
                             int(item["tradeId"]) if item.get("tradeId") else None
@@ -162,7 +166,9 @@ class BinanceApiServices:
                         "position_initial_margin": Decimal(
                             item["positionInitialMargin"]
                         ),
-                        "update_time": int(item["updateTime"]),
+                        "update_time": DateUtil.parse_timestamp_to_datetime(
+                            item["updateTime"]
+                        ),
                     }
                 )
             except (KeyError, ValueError) as e:

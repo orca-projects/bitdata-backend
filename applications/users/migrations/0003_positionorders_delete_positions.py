@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name="PositionOrders",
             fields=[
                 ("id", models.AutoField(primary_key=True, serialize=False)),
-                ("binance_id", models.CharField(db_column="binanceId", max_length=50)),
+                ("binance_uid", models.CharField(db_column="binanceId", max_length=50)),
                 ("order_id", models.CharField(db_column="orderId", max_length=50)),
                 (
                     "position_id",

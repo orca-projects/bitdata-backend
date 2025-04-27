@@ -62,7 +62,9 @@ class BinanceApiRepository:
         try:
             client = Client(api_key, secret_key)
             # Binance 선물 API - TransactionHistory 조회
-            response = client.futures_income_history(startTime=start_time, limit=1000)
+            response = client.futures_income_history(
+                startTime=int(start_time), limit=1000
+            )
             # TransactionHistory Data 반환
             return response
 

@@ -15,12 +15,19 @@ logger = logging.getLogger(__name__)
 # TransactionHistory 테이블 관리 Repository
 class TransactionHistoryRepository:
     @staticmethod
-    def get_last_time():
+    def get_last_time_by_binance_uid(binance_uid):
         try:
-            last_income = TransactionHistory.objects.order_by("-time").first()
-            return (
-                last_income.time if last_income else settings.BINANCE_DEFAULT_TIME
-            )  # 데이터 없으면 기본값 반환
+            last_income = (
+                TransactionHistory.objects.filter(binance_uid=binance_uid)
+                .order_by("-time")
+                .first()
+            )
+
+            if last_income:
+                return last_income.time.timestamp()
+            else:
+                return settings.BINANCE_DEFAULT_TIME
+
         except Exception as e:
             error_trace = traceback.format_exc()
             logger.error(f"마지막 거래 시간 조회 중 오류 발생: {e}\n{error_trace}")
@@ -29,24 +36,16 @@ class TransactionHistoryRepository:
     # 25.02.18 윤택한
     # TransactionHistory Data 저장
     @staticmethod
-    def create(binance_id, transactions_data):
+    def set_transaction_history(binance_uid, transactions_data):
         try:
-            if not transactions_data:
-                logger.warning("거래 내역 데이터 없음")
-                return None
-
             transactions_objects = [
-                TransactionHistory(binance_id=binance_id, **transaction)
+                TransactionHistory(binance_uid=binance_uid, **transaction)
                 for transaction in transactions_data
             ]
 
             TransactionHistory.objects.bulk_create(
                 transactions_objects, ignore_conflicts=True
             )
-            logger.info(
-                f"{len(transactions_objects)}개의 TransactionHistory 데이터를 저장했습니다."
-            )
-
         except Exception as e:
             logger.error(f"TransactionHistory 데이터 저장 중 오류 발생: {e}")
             raise RuntimeError("TransactionHistory 데이터 저장 중 오류 발생")

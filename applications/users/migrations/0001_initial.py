@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                     models.DateTimeField(auto_now_add=True, db_column="createdAt"),
                 ),
                 (
-                    "deleted_at",
+                    "is_deleted",
                     models.DateTimeField(blank=True, db_column="deletedAt", null=True),
                 ),
             ],
@@ -43,7 +43,10 @@ class Migration(migrations.Migration):
             name="UserApiKey",
             fields=[
                 ("id", models.AutoField(primary_key=True, serialize=False)),
-                ("binance_id", models.CharField(db_column="binanceId", max_length=255)),
+                (
+                    "binance_uid",
+                    models.CharField(db_column="binanceId", max_length=255),
+                ),
                 (
                     "created_at",
                     models.DateTimeField(

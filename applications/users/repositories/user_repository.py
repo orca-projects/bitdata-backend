@@ -1,6 +1,6 @@
 import logging
 
-from applications.users.models.user_model import User
+from applications.users.models import User
 
 
 logger = logging.getLogger(__name__)
@@ -8,8 +8,13 @@ logger = logging.getLogger(__name__)
 
 class UserRepository:
     @staticmethod
+    def get_user_by_kakao_uid(kakao_uid: int) -> User | None:
+        user = User.objects.filter(kakao_uid=kakao_uid, is_deleted=False).first()
+        return user
+
+    @staticmethod
     def get_user_id_by_kakao_uid(kakao_uid: int) -> int | None:
-        user = User.objects.filter(kakao_uid=kakao_uid, deleted_at=None).first()
+        user = User.objects.filter(kakao_uid=kakao_uid, is_deleted=False).first()
         return user.id if user else None
 
     @staticmethod

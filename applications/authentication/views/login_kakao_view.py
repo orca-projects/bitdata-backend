@@ -4,7 +4,7 @@ from django.utils.decorators import method_decorator
 
 from rest_framework.views import APIView
 
-from core.utils.response_helper import ResponseHelper
+from core.utils.response_util import ResponseUtil
 
 from applications.authentication.services import KakaoService
 from applications.authentication.utils import StateUtil
@@ -19,34 +19,28 @@ class KakaoLogin(APIView):
 
         login_url = KakaoService.get_login_url(state)
 
-        return ResponseHelper.success(data={"login_url": login_url})
+        return ResponseUtil.success(data={"login_url": login_url})
 
 
 class KakaoLoginCallback(APIView):
     def post(self, request) -> JsonResponse:
-        session_state = request.session.get("oauth_state")
-        code = request.data.get("code")
-        request_state = request.data.get("state")
-
         try:
-            KakaoService.validate_sate(session_state, request_state)
+            KakaoService.check_sate(request)
 
-            access_token = KakaoService.get_access_token(code)
-            KakaoService.validate_access_token(access_token)
+            access_token = KakaoService.get_access_token(request)
 
-            user_data = KakaoService.get_user_data(access_token)
-            KakaoService.validate_user_data(user_data)
+            user_data = KakaoService.fetch_user_data(access_token)
 
-            KakaoService.save_session_user_data(request, user_data)
+            request.session["user_data"] = user_data
 
             kakao_uid = user_data["kakao_uid"]
             is_member = UserService.is_member(kakao_uid)
             has_binance_key = UserApiKeyService.has_binance_api_key(kakao_uid)
         except Exception as e:
             print(e)
-            return ResponseHelper.error()
+            return ResponseUtil.error()
 
-        return ResponseHelper.success(
+        return ResponseUtil.success(
             data={
                 "is_member": is_member,
                 "has_binance_key": has_binance_key,

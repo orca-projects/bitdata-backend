@@ -22,7 +22,7 @@ class PositionOrdersRepository:
 
             position_objects = [
                 PositionOrders(
-                    binance_id=data["binanceId"],
+                    binance_uid=data["binanceId"],
                     order_id=data["orderId"],
                     position_id=data["positionId"],
                 )
