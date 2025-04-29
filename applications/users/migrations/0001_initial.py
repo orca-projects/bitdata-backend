@@ -8,40 +8,71 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('kakao_id', models.BigIntegerField(db_column='kakaoId', unique=True)),
-                ('account_email', models.EmailField(db_column='accountEmail', max_length=255)),
-                ('name', models.CharField(max_length=255)),
-                ('phone_number', models.CharField(db_column='phoneNumber', max_length=255)),
-                ('created_at', models.DateTimeField(auto_now_add=True, db_column='createdAt')),
-                ('deleted_at', models.DateTimeField(blank=True, db_column='deletedAt', null=True)),
+                ("id", models.AutoField(primary_key=True, serialize=False)),
+                ("kakao_uid", models.BigIntegerField(db_column="kakaoId", unique=True)),
+                (
+                    "account_email",
+                    models.EmailField(db_column="accountEmail", max_length=255),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "phone_number",
+                    models.CharField(db_column="phoneNumber", max_length=255),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, db_column="createdAt"),
+                ),
+                (
+                    "is_deleted",
+                    models.DateTimeField(blank=True, db_column="deletedAt", null=True),
+                ),
             ],
             options={
-                'db_table': 'User',
-                'managed': False,
+                "db_table": "User",
+                "managed": False,
             },
         ),
         migrations.CreateModel(
-            name='UserKeyInfo',
+            name="UserApiKey",
             fields=[
-                ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('binance_id', models.CharField(db_column='binanceId', max_length=255)),
-                ('created_at', models.DateTimeField(db_column='createdAt', default=django.utils.timezone.now)),
-                ('is_connected', models.BooleanField(db_column='isConnected', default=False)),
-                ('is_key_active', models.BooleanField(db_column='isKeyActive', default=True)),
-                ('binance_api_key', models.CharField(db_column='binanceApiKey', max_length=255)),
-                ('binance_secret_key', models.CharField(db_column='binanceSecretKey', max_length=255)),
+                ("id", models.AutoField(primary_key=True, serialize=False)),
+                (
+                    "binance_uid",
+                    models.CharField(db_column="binanceId", max_length=255),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        db_column="createdAt", default=django.utils.timezone.now
+                    ),
+                ),
+                (
+                    "is_connected",
+                    models.BooleanField(db_column="isConnected", default=False),
+                ),
+                (
+                    "is_key_active",
+                    models.BooleanField(db_column="isKeyActive", default=True),
+                ),
+                (
+                    "binance_api_key",
+                    models.CharField(db_column="binanceApiKey", max_length=255),
+                ),
+                (
+                    "binance_secret_key",
+                    models.CharField(db_column="binanceSecretKey", max_length=255),
+                ),
             ],
             options={
-                'db_table': 'UserKeyInfo',
-                'managed': False,
+                "db_table": "UserApiKey",
+                "managed": False,
             },
         ),
     ]

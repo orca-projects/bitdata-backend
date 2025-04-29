@@ -1,5 +1,9 @@
 from django.urls import path
-from applications.users.views import BinanceKey, Collect, Profile
+from applications.users.views import (
+    BinanceKey,
+    Collect,
+    Profile,
+)
 
 urlpatterns = [
     path("binance-key/", BinanceKey.as_view(), name="binance-key"),

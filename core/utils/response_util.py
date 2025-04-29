@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 
 
-class ResponseHelper:
+class ResponseUtil:
     @staticmethod
     def create(state=None, message=None, data=None, status=200):
         response = {}
@@ -24,13 +24,13 @@ class ResponseHelper:
 
     @staticmethod
     def success(data=None, message=None):
-        return ResponseHelper.create(
+        return ResponseUtil.create(
             state="success", message=message, data=data, status=200
         )
 
     @staticmethod
     def error(message="예상치 못한 오류"):
-        return ResponseHelper.create(
+        return ResponseUtil.create(
             state="error",
             message=message,
             status=500,

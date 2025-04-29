@@ -1,2 +1,2 @@
-from .login_kakao_views import *
-from .join_views import *
+from .login_kakao_view import *
+from .join_view import *

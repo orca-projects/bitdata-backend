@@ -4,6 +4,9 @@ __pycache__/
 
 # IDE settings (optional)
 .vscode/
+.idea/
 
 # Django secrets
 .env
+.logs/
+*.log
