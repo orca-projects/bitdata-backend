@@ -1,20 +1,31 @@
+# macOS
+.DS_Store
+.localized
+
 # Compiled files
 __pycache__/
 *.pyc
+
+# Egg and packaging
+*.egg-info/
+build/
+dist/
+
+# SQLite DB
+*.sqlite3
 
 # IDE settings (optional)
 .vscode/
 .idea/
 
-# Django secrets
-.env
+# Logs
 .logs/
 *.log
 
-venv/
+# Django secrets
+.env
+.env.*
 
-.DS_Store
-
-node_modules/
-dist/
-build/
+# Testing
+htmlcov/
+.coverage
