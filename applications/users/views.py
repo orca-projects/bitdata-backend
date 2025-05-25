@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from core.utils import ResponseUtil
 
 from applications.users.services import (
+    UserService,
     UserApiKeyService,
     ProfileService,
 )
@@ -74,3 +75,18 @@ class Profile(APIView):
                 "profile": profile,
             },
         )
+
+
+class Withdraw(APIView):
+    def post(self, request) -> JsonResponse:
+        try:
+            user_data = request.session.get("user_data")
+            kakao_uid = user_data["kakao_uid"]
+            reason = request.data.get("withdraw_reason", "")
+
+            result = UserService.withdraw(kakao_uid, reason)
+
+            return ResponseUtil.success(data={"result": result})
+        except Exception as e:
+            print(e)
+            return ResponseUtil.error()

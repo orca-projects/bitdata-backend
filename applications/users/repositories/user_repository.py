@@ -28,3 +28,12 @@ class UserRepository:
             )
         except Exception as e:
             raise e
+
+    @staticmethod
+    def update_user_by_user_id(user_id: int, data: dict) -> bool:
+        try:
+            updated_count = User.objects.filter(id=user_id).update(**data)
+            return updated_count > 0
+        except Exception as e:
+            logger.error(f"Failed to update user {user_id}: {e}")
+            return False
