@@ -11,6 +11,7 @@ class User(models.Model):
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
     updated_at = models.DateTimeField(db_column="updatedAt", default=timezone.now)
     is_deleted = models.BooleanField(db_column="isDeleted", default=False)
+    withdraw_reason = models.CharField(db_column="withdrawReason", max_length=600)
 
     class Meta:
         db_table = "User"
