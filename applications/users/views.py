@@ -24,6 +24,8 @@ class BinanceKey(APIView):
                 "secret_key": request.data.get("secret_key"),
             }
 
+            request.session["has_api_key"] = True
+
             UserApiKeyService.save_binance_api_key(kakao_uid, binance_api_key)
         except Exception as e:
             print(e)
@@ -84,7 +86,7 @@ class Withdraw(APIView):
             kakao_uid = user_data["kakao_uid"]
             reason = request.data.get("withdraw_reason", "")
 
-            result = UserService.withdraw(kakao_uid, reason)
+            result = UserService.withdraw(request, kakao_uid, reason)
 
             return ResponseUtil.success(data={"result": result})
         except Exception as e:
