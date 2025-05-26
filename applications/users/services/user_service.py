@@ -1,6 +1,7 @@
 import logging
 from django.utils import timezone
 
+from applications.authentication.services import AuthenticationService
 from applications.users.repositories import UserRepository
 
 logger = logging.getLogger(__name__)
@@ -8,12 +9,21 @@ logger = logging.getLogger(__name__)
 
 class UserService:
     @staticmethod
+    def get_user(kakao_uid):
+        user = UserRepository.get_user_by_kakao_uid(kakao_uid)
+        return user
+
+    @staticmethod
     def is_member(kakao_uid):
         user_id = UserRepository.get_user_id_by_kakao_uid(kakao_uid)
         return user_id is not None
 
     @staticmethod
-    def withdraw(kakao_uid, reason):
+    def join(user_data):
+        UserRepository.set_user(user_data)
+
+    @staticmethod
+    def withdraw(request, kakao_uid, reason):
         user_id = UserRepository.get_user_id_by_kakao_uid(kakao_uid)
         if user_id is None:
             logger.warning(f"kakao_uid invalid: {kakao_uid}")
@@ -32,5 +42,7 @@ class UserService:
 
         if not result:
             logger.warning("UserService/withdraw is failed")
+
+        AuthenticationService.logout(request)
 
         return result

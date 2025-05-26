@@ -5,8 +5,7 @@ from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 
 from core.utils.response_util import ResponseUtil
-
-from applications.authentication.services import KakaoService
+from applications.authentication.services import KakaoService, AuthenticationService
 from applications.authentication.utils import StateUtil
 from applications.users.services import UserService, UserApiKeyService
 
@@ -36,13 +35,17 @@ class KakaoLoginCallback(APIView):
             kakao_uid = user_data["kakao_uid"]
             is_member = UserService.is_member(kakao_uid)
             has_binance_key = UserApiKeyService.has_binance_api_key(kakao_uid)
+
+            if is_member:
+                AuthenticationService.login(request, kakao_uid)
+
+            return ResponseUtil.success(
+                data={
+                    "is_member": is_member,
+                    "has_binance_key": has_binance_key,
+                },
+            )
+
         except Exception as e:
             print(e)
             return ResponseUtil.error()
-
-        return ResponseUtil.success(
-            data={
-                "is_member": is_member,
-                "has_binance_key": has_binance_key,
-            },
-        )
