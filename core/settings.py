@@ -45,6 +45,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # custom
+    "applications.authorization.middlewares.session_authorization_middleware.SessionAuthorizationMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -200,13 +202,3 @@ LOGGING = {
 }
 
 BINANCE_DEFAULT_TIME = 1564588800001
-
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-}
