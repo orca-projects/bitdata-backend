@@ -25,6 +25,8 @@ dist/
 # Django secrets
 .env
 .env.*
+venv/
+.venv/
 
 # Testing
 htmlcov/
