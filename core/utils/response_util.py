@@ -25,13 +25,17 @@ class ResponseUtil:
     @staticmethod
     def success(data=None, message=None):
         return ResponseUtil.create(
-            state="success", message=message, data=data, status=200
+            state="success",
+            data=data,
+            message=message,
+            status=200,
         )
 
     @staticmethod
-    def error(message="예상치 못한 오류"):
+    def error(data=None, message="예상치 못한 오류"):
         return ResponseUtil.create(
             state="error",
+            data=data,
             message=message,
-            status=500,
+            status=200,
         )

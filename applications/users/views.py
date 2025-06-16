@@ -51,7 +51,11 @@ class Collect(APIView):
             profile = ProfileService.get_profile(kakao_uid)
         except Exception as e:
             print(f"Error in Collect.get(): {e}")
-            return ResponseUtil.error()
+            return ResponseUtil.error(
+                data={
+                    "profile": {},
+                },
+            )
 
         return ResponseUtil.success(
             data={
