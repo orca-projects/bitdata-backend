@@ -33,12 +33,13 @@ class UserApiKeyService:
     def get_binance_api_key(kakao_uid):
         user_id = UserRepository.get_user_id_by_kakao_uid(kakao_uid)
         user_api_key = UserApiKeyRepository.get_active_by_user_id(user_id)
-
-        binance_api_key = {
+        
+        if not user_api_key:
+            raise PermissionError("NEED_API_KEY")
+        return {
             "api_key": user_api_key.binance_api_key,
             "secret_key": user_api_key.binance_secret_key,
         }
-        return binance_api_key
 
     @staticmethod
     def get_binance_uid(kakao_uid):
