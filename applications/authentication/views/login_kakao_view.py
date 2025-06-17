@@ -41,21 +41,12 @@ class KakaoLoginCallback(APIView):
             if is_member:
                 AuthenticationService.login(request, kakao_uid)
 
-            if has_binance_key:
-                request.session["has_api_key"] = True
-            
-            if not is_member:
-                redirect_url="/join" # 회원이 아닌 경우 → 회원가입 페이지
-            elif not has_binance_key:
-                redirect_url="/collect" # 회원이지만 API 키 없는 경우 → 설정 페이지
-            else:
-                redirect_url="/collect" # 회원 + API 키 있는 경우 → 수집 페이지
+            request.session["has_api_key"] = has_binance_key
 
             return ResponseUtil.success(
                 data={
                     "is_member": is_member,
                     "has_binance_key": has_binance_key,
-                    "redirect_url":  redirect_url,
                 },
             )
 

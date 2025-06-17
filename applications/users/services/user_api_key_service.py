@@ -35,7 +35,7 @@ class UserApiKeyService:
         user_api_key = UserApiKeyRepository.get_active_by_user_id(user_id)
         
         if not user_api_key:
-            raise PermissionError("NEED_API_KEY")
+            return None
         return {
             "api_key": user_api_key.binance_api_key,
             "secret_key": user_api_key.binance_secret_key,
