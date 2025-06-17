@@ -53,3 +53,22 @@ class KakaoLoginCallback(APIView):
         except Exception as e:
             print(e)
             return ResponseUtil.error()
+        
+class NextStepView(APIView):
+    def get(self, request) -> JsonResponse:
+        is_member = request.session.get("is_login", False)
+        has_api_key = request.session.get("has_api_key", False)
+
+        referer = request.META.get("HTTP_REFERER", "")
+        came_from_join = referer.endswith("/join")
+
+        if not is_member:
+            return ResponseUtil.success(data={"next_step": "join"})
+
+        if came_from_join:
+            return ResponseUtil.success(data={"next_step": "onboarding"})
+
+        if not has_api_key:
+            return ResponseUtil.success(data={"next_step": "setting"})
+
+        return ResponseUtil.success(data={"next_step": "collect"})

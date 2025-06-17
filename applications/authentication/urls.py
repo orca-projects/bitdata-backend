@@ -4,6 +4,7 @@ from applications.authentication.views import (
     KakaoLoginCallback,
     Join,
     Logout,
+    NextStepView,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     ),
     path("join/", Join.as_view(), name="join"),
     path("logout/", Logout.as_view(), name="logout"),
+    path("next-step/", NextStepView.as_view(), name="next-step"), 
 ]
