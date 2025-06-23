@@ -9,28 +9,36 @@ class ProfileService:
     @staticmethod
     def get_profile(kakao_uid):
         try:
+            profile = {
+                "username": "",
+                "is_connected": False,
+                "api_key": None,
+                "binance_uid": None,
+            }
+
             user = UserRepository.get_user_by_kakao_uid(kakao_uid)
-            username = user.name
+            if not user:
+                return profile
+
+            profile["username"] = ProfileService.mask_username(user.name)
 
             active_user_api_key = UserApiKeyRepository.get_active_by_user_id(user.id)
-            is_connected = active_user_api_key.is_connected
-            api_key = active_user_api_key.binance_api_key
-            binance_uid = UserBinanceRepository.get_binance_uid_by_id(
-                active_user_api_key.user_binance_id
-            )
+            if active_user_api_key:
+                profile["is_connected"] = active_user_api_key.is_connected
+                api_key = active_user_api_key.binance_api_key
+                profile["api_key"] = ProfileService.mask_api_key(api_key)
 
-            username_masked = ProfileService.mask_username(username)
-            api_key_masked = ProfileService.mask_api_key(api_key)
+                binance_uid = UserBinanceRepository.get_binance_uid_by_id(
+                    active_user_api_key.user_binance_id
+                )
+                profile["binance_uid"] = binance_uid
 
-            return {
-                "username": username_masked,
-                "is_connected": is_connected,
-                "api_key": api_key_masked,
-                "binance_uid": binance_uid,
-            }
+            return profile
+
         except Exception as e:
             print(f"DB 조회 오류: {str(e)}")
             return None
+
 
     @staticmethod
     def mask_username(username):
