@@ -1,5 +1,6 @@
 from django.urls import path
 from applications.authentication.views import (
+    LoginState,
     KakaoLogin,
     KakaoLoginCallback,
     Join,
@@ -7,6 +8,7 @@ from applications.authentication.views import (
 )
 
 urlpatterns = [
+    path("login/state/", LoginState.as_view(), name="login-state"),
     path("login/kakao/", KakaoLogin.as_view(), name="login-kakao"),
     path(
         "login/kakao/callback/",
