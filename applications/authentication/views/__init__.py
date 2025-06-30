@@ -1,3 +1,4 @@
+from .login_view import *
 from .login_kakao_view import *
 from .join_view import *
-from .logout_view import Logout
+from .logout_view import *
