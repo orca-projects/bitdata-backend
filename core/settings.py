@@ -12,6 +12,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "dev.bitdata.kr",
+    "qa.bitdata.kr",
     "bitdata.kr",
 ]
 
@@ -80,6 +81,17 @@ if ENVIRONMENT == "development":
             "PORT": os.getenv("DEV_DB_PORT"),
         }
     }
+elif ENVIRONMENT == "qa":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("QA_DB_NAME"),
+            "USER": os.getenv("QA_DB_USER"),
+            "PASSWORD": os.getenv("QA_DB_PASSWORD"),
+            "HOST": os.getenv("QA_DB_HOST"),
+            "PORT": os.getenv("QA_DB_PORT"),
+        }
+    }
 elif ENVIRONMENT == "production":
     DATABASES = {
         "default": {
@@ -121,6 +133,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 ORIGINS = [
     "http://dev.bitdata.kr",
+    "https://qa.bitdata.kr",
     "https://bitdata.kr",
 ]
 
@@ -138,6 +151,8 @@ KAKAO_REST_API_KEY = os.getenv("KAKAO_REST_API_KEY")
 KAKAO_CLIENT_SECRET = os.getenv("KAKAO_CLIENT_SECRET")
 if ENVIRONMENT == "development":
     KAKAO_REDIRECT_URL = "http://dev.bitdata.kr/callback"
+elif ENVIRONMENT == "qa":
+    KAKAO_REDIRECT_URL = "https://qa.bitdata.kr/callback"
 elif ENVIRONMENT == "production":
     KAKAO_REDIRECT_URL = "https://bitdata.kr/callback"
 KAKAO_REPONSE_TYPE = os.getenv("KAKAO_REPONSE_TYPE")
