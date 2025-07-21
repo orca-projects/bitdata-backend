@@ -17,7 +17,7 @@ class OrderHistory(models.Model):
     status = models.CharField(max_length=20)
     type = models.CharField(max_length=25)
     orig_type = models.CharField(db_column="origType", max_length=25)
-    time_in_force = models.CharField(db_column="timeInForce", max_length=3)
+    time_in_force = models.CharField(db_column="timeInForce", max_length=10)
     avg_price = models.DecimalField(
         db_column="avgPrice", max_digits=20, decimal_places=6
     )
