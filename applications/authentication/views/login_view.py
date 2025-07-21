@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from core.utils.response_util import ResponseUtil
 from applications.users.services import ProfileService
 
+
 class LoginState(APIView):
     def get(self, request) -> JsonResponse:
         is_login = request.session.get("is_login", False)
@@ -16,7 +17,9 @@ class LoginState(APIView):
                 if profile:
                     is_connected = profile.get("is_connected", False)
 
-        return ResponseUtil.success(data={
-            "is_login": is_login,
-            "is_connected": is_connected,
-        })
+        return ResponseUtil.success(
+            data={
+                "is_login": is_login,
+                "is_connected": is_connected,
+            }
+        )

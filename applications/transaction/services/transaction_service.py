@@ -27,21 +27,21 @@ class TransactionService:
                 )
 
     @staticmethod
-    def get_position_by_date(binance_uid, start_date=None, end_date=None):
+    def get_position_by_date(binance_uid, start_ms=None, end_ms=None):
         now = timezone.now()
 
-        if start_date is None:
-            start_date = now - timezone.timedelta(days=7)
+        if start_ms is None:
+            start_ms = now - timezone.timedelta(days=7)
         else:
-            start_date = DateUtil.parse_timestamp_to_datetime(start_date)
+            start_ms = DateUtil.parse_timestamp_to_datetime(start_ms)
 
-        if end_date is None:
-            end_date = now
+        if end_ms is None:
+            end_ms = now
         else:
-            end_date = DateUtil.parse_timestamp_to_datetime(end_date)
+            end_ms = DateUtil.parse_timestamp_to_datetime(end_ms)
 
         transaction = PositionHistoryRepository.get_position_by_date(
-            binance_uid, start_date, end_date
+            binance_uid, start_ms, end_ms
         )
 
         return TransactionService.format_transaction(transaction)

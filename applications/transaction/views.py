@@ -14,11 +14,11 @@ class Transaction(APIView):
 
             binance_uid = UserApiKeyService.get_binance_uid(kakao_uid)
 
-            start_date = request.query_params.get("start_date")
-            end_date = request.query_params.get("end_date")
+            start_ms = request.query_params.get("start_ms")
+            end_ms = request.query_params.get("end_ms")
 
             transaction = TransactionService.get_position_by_date(
-                binance_uid, start_date, end_date
+                binance_uid, start_ms, end_ms
             )
         except Exception as e:
             print(e)
