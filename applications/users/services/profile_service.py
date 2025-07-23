@@ -39,7 +39,6 @@ class ProfileService:
             print(f"DB 조회 오류: {str(e)}")
             return None
 
-
     @staticmethod
     def mask_username(username):
         if len(username) == 1:

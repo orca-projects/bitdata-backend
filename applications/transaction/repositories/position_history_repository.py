@@ -30,12 +30,12 @@ class PositionHistoryRepository:
             return DateUtil.parse_timestamp_to_datetime(0)
 
     @staticmethod
-    def get_position_by_date(binance_uid, start_date, end_date):
+    def get_position_by_date(binance_uid, start_ms, end_ms):
         try:
             positions = PositionHistory.objects.filter(
                 binance_uid=binance_uid,
-                position_closed_at__gte=start_date,
-                position_closed_at__lte=end_date,
+                position_closed_at__gte=start_ms,
+                position_closed_at__lte=end_ms,
             ).order_by("-position_closed_at")
             return positions
         except Exception as e:
