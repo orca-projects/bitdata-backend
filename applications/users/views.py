@@ -42,11 +42,11 @@ class Collect(APIView):
 
             CollectService.collect(kakao_uid, binance_api_key)
 
-            position_dto_lsit = PositionCalculatorService.calculate_position(
+            position_dto_list = PositionCalculatorService.calculate_position(
                 kakao_uid, binance_api_key
             )
 
-            TransactionService.save_position(position_dto_lsit)
+            TransactionService.save_position(position_dto_list)
 
             profile = ProfileService.get_profile(kakao_uid)
         except Exception as e:

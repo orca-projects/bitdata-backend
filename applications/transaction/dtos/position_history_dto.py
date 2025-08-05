@@ -4,6 +4,7 @@ from django.utils import timezone
 from datetime import timedelta
 from applications.transaction.repositories import TransactionHistoryRepository
 from applications.users.models import UserBinance
+import hashlib
 
 
 @dataclass
@@ -27,6 +28,7 @@ class PositionDto:
     closing_commission: Decimal = Decimal("0")
     total_funding_fee: Decimal = Decimal("0")
     total_commission: Decimal = Decimal("0")
+    hash: str = field(init=False)
 
     _order_history_ids: list[str] = field(default_factory=list)
     _position_opened_at: timezone.datetime = field(
@@ -83,6 +85,7 @@ class PositionDto:
         self.calculate_realized_pnl()
         self.calculate_realized_roi()
         self.calculate_avg_price()
+        self.calculate_hash()
 
     def calculate_total_funding_fee(self):
         self.total_funding_fee = TransactionHistoryRepository.get_total_funding_fee(
@@ -112,6 +115,11 @@ class PositionDto:
         self.opening_avg_price = abs(self.opening_avg_price / self._open_quantity)
         self.closing_avg_price = abs(self.closing_avg_price / self._close_quantity)
 
+    def calculate_hash(self):
+        sorted_ids = sorted(self._order_history_ids)
+        joined_ids = "-".join(str(i) for i in sorted_ids)
+        self.hash = hashlib.sha256(joined_ids.encode("utf-8")).hexdigest()
+
     def to_position_history_data(self):
         return {
             "binance_uid": self.binance_uid,
@@ -130,14 +138,15 @@ class PositionDto:
             "closing_commission": self.closing_commission,
             "total_funding_fee": self.total_funding_fee,
             "total_commission": self.total_commission,
+            "hash": self.hash,
         }
 
-    def to_position_orders_data(self, position_history_id: int):
+    def to_position_orders_data(self):
         return [
             {
                 "binance_uid": self.binance_uid,
                 "order_history_id": order_history_id,
-                "position_history_id": position_history_id,
+                "position_hash": self.hash,
             }
             for order_history_id in self._order_history_ids
         ]
