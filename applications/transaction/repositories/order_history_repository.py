@@ -37,7 +37,7 @@ class OrderHistoryRepository:
             raise RuntimeError("OrderHistory 데이터 저장 중 오류 발생")
 
     @staticmethod
-    def get_order_summary(binance_uid, last_closed_at):
+    def get_order_summary(binance_uid, from_date):
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -66,7 +66,7 @@ class OrderHistoryRepository:
                         AND trade_start_time >= %s
                         ORDER BY trade_start_time DESC;
                     """,
-                    [binance_uid, last_closed_at],
+                    [binance_uid, from_date],
                 )
                 columns = [col[0] for col in cursor.description]
                 return [dict(zip(columns, row)) for row in cursor.fetchall()]

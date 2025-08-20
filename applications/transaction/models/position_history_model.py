@@ -42,6 +42,7 @@ class PositionHistory(models.Model):
     total_commission = models.DecimalField(
         db_column="totalCommission", max_digits=20, decimal_places=6
     )
+    hash = models.CharField(db_column="hash", max_length=128)
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
     updated_at = models.DateTimeField(db_column="updatedAt", default=timezone.now)
 

@@ -1,30 +1,35 @@
 from django.utils import timezone
 from django.db import transaction
 from core.utils import DateUtil
-from applications.transaction.models import PositionHistory, PositionOrders
-from applications.transaction.repositories import PositionHistoryRepository
+from applications.transaction.repositories import (
+    PositionHistoryRepository,
+    PositionOrdersRepository,
+)
 
 
 class TransactionService:
     @staticmethod
-    def save_position(position_dto_lsit):
+    def save_position(position_dto_list):
         with transaction.atomic():
-            for position_dto in position_dto_lsit:
-                position_history_obj = PositionHistory.objects.create(
-                    **position_dto.to_position_history_data()
-                )
+            position_data_list = [
+                dto.to_position_history_data() for dto in position_dto_list
+            ]
+            position_histories = PositionHistoryRepository.create(position_data_list)
+            history_map = {ph.hash: ph.id for ph in position_histories}
 
-                position_orders_data = position_dto.to_position_orders_data(
-                    position_history_obj.id
-                )
+            position_orders_data = []
+            for dto in position_dto_list:
+                position_history_id = history_map.get(dto.hash)
+                if not position_history_id:
+                    continue
 
-                PositionOrders.objects.bulk_create(
-                    [
-                        PositionOrders(**order_datas)
-                        for order_datas in position_orders_data
-                    ],
-                    ignore_conflicts=True,
-                )
+                orders = dto.to_position_orders_data()
+                for order in orders:
+                    order["position_history_id"] = position_history_id
+                    order["position_hash"] = dto.hash
+                    position_orders_data.append(order)
+
+            PositionOrdersRepository.create(position_orders_data)
 
     @staticmethod
     def get_position_by_date(binance_uid, start_ms=None, end_ms=None):

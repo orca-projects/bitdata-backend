@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import timedelta
 from decimal import Decimal
 
 from applications.users.services import UserApiKeyService
@@ -17,8 +18,9 @@ class PositionCalculatorService:
         binance_uid = UserApiKeyService.get_binance_uid(kakao_uid)
         quantity_dict = PositionCalculatorService.get_quantity_dict(binance_api_key)
         last_closed_at = PositionHistoryRepository.get_last_closed_at(binance_uid)
+        from_date = last_closed_at - timedelta(days=7)
         order_history_arr = OrderHistoryRepository.get_order_summary(
-            binance_uid, last_closed_at
+            binance_uid, from_date
         )
 
         in_progress_position_dto_dict = {}

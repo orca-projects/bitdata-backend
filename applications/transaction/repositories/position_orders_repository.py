@@ -14,25 +14,18 @@ class PositionOrdersRepository:
     # 25.02.27(목) 윤택한
     # positions_data 저장
     @staticmethod
-    def create(positions_data):
+    def create(position_orders_data):
         try:
-            if not positions_data:
-                logger.warning("저장할 positions_data가 없습니다.")
+            if not position_orders_data:
+                logger.warning("저장할 position_orders_data가 없습니다.")
                 return None
 
-            position_objects = [
-                PositionOrders(
-                    binance_uid=data["binanceId"],
-                    order_id=data["orderId"],
-                    position_id=data["positionId"],
-                )
-                for data in positions_data
-            ]
+            PositionOrders.objects.bulk_create(
+                [PositionOrders(**data) for data in position_orders_data],
+                ignore_conflicts=True,
+            )
 
-            with transaction.atomic():  # 트랜잭션 처리 (데이터 일관성 유지)
-                PositionOrders.objects.bulk_create(position_objects)
-
-            logger.info(f"{len(positions_data)}개의 Position 데이터 저장 완료")
+            logger.info(f"{len(position_orders_data)}개의 Position 데이터 저장 완료")
             return True
 
         except Exception as e:

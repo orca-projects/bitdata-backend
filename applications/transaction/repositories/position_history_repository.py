@@ -42,3 +42,23 @@ class PositionHistoryRepository:
             error_trace = traceback.format_exc()
             logger.error(f"포지션 기간 조회 중 오류 발생: {e}\n{error_trace}")
             return PositionHistory.objects.none()
+
+    @staticmethod
+    def create(position_history_data_list: list[dict]) -> list[PositionHistory]:
+        if not position_history_data_list:
+            logger.warning("저장할 position_data가 없습니다.")
+            return []
+
+        try:
+            PositionHistory.objects.bulk_create(
+                [PositionHistory(**data) for data in position_history_data_list],
+                ignore_conflicts=True,
+            )
+
+            hashes = [data["hash"] for data in position_history_data_list]
+            return PositionHistory.objects.filter(hash__in=hashes)
+        except Exception as e:
+            logger.error(
+                f"PositionHistory 저장 중 오류 발생: {e}\n{traceback.format_exc()}"
+            )
+            return []

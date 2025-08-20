@@ -7,6 +7,7 @@ class PositionOrders(models.Model):
     binance_uid = models.BigIntegerField(db_column="binanceUid")
     position_history_id = models.BigIntegerField(db_column="positionHistoryId")
     order_history_id = models.BigIntegerField(db_column="orderHistoryId")
+    position_hash = models.CharField(db_column="positionHash", max_length=128)
     created_at = models.DateTimeField(db_column="createdAt", default=timezone.now)
     updated_at = models.DateTimeField(db_column="updatedAt", default=timezone.now)
 
