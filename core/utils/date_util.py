@@ -11,10 +11,7 @@ class DateUtil:
         elif not isinstance(timestamp, (int, float)):
             raise ValueError("timestamp는 int, float 또는 str 타입이어야 합니다.")
 
-        return timezone.make_aware(
-            timezone.datetime.fromtimestamp(timestamp / 1000),
-            pytz.timezone("Asia/Seoul"),
-        )
+        return timezone.datetime.fromtimestamp(timestamp / 1000, tz=pytz.utc)
 
     @staticmethod
     def parse_datetime_to_timestamp(datetime_obj) -> int:
